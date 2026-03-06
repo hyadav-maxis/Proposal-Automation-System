@@ -5,6 +5,7 @@ This layer knows about both the PricingService and the
 ProposalRepository, but does NOT import from FastAPI.
 """
 
+import re
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -589,7 +590,7 @@ class ProposalService:
                 detail="Client email is missing for this proposal. Please update the proposal first.",
             )
 
-        # 3. Load template from pricing_config (fallback to default if not set)
+        # 3. Load template: Check for client-specific override first, then global config
         _DEFAULT_SUBJECT = "Proposal {{proposal_number}} — {{project_name}}"
         _DEFAULT_BODY = """<html>
   <body style="margin:0;padding:0;background:#f5f6fa;font-family:Arial,sans-serif;">
@@ -621,12 +622,21 @@ If you have any questions or need further clarification, please feel free to rea
 Best regards,
 Proposal Automation Team"""
 
-        subject_tpl = self._pricing._config_repo.get_raw_value("email_template_subject") or _DEFAULT_SUBJECT
-        mode = self._pricing._config_repo.get_raw_value("email_template_mode") or "html"
-        body_tpl = self._pricing._config_repo.get_raw_value("email_template_body")
+        client_tpl = self._pricing._config_repo.get_client_template(client_email)
         
-        if not body_tpl:
-            body_tpl = _DEFAULT_PLAIN_BODY if mode == "plain" else _DEFAULT_BODY
+        if client_tpl:
+            subject_tpl = client_tpl["subject"]
+            body_tpl = client_tpl["body"]
+            # Smart detection: defaults to plain if no obvious HTML tags found
+            has_html = bool(re.search(r'<[a-z][\s\S]*>', body_tpl, re.IGNORECASE))
+            mode = "html" if has_html else "plain"
+        else:
+            subject_tpl = self._pricing._config_repo.get_raw_value("email_template_subject") or _DEFAULT_SUBJECT
+            mode = self._pricing._config_repo.get_raw_value("email_template_mode") or "html"
+            body_tpl = self._pricing._config_repo.get_raw_value("email_template_body")
+            
+            if not body_tpl:
+                body_tpl = _DEFAULT_PLAIN_BODY if mode == "plain" else _DEFAULT_BODY
 
         # 4. Build logo block (looks for company_logo.* in the static folder)
         import os as _os

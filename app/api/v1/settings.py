@@ -198,6 +198,39 @@ class TestEmailRequest(BaseModel):
     body: Optional[str] = None
 
 
+class ClientTemplateRequest(BaseModel):
+    client_email: str
+    subject: str
+    body: str
+
+
+@router.get("/settings/client-templates")
+def list_client_templates(db=Depends(get_db)):
+    """Return all client-specific email template overrides."""
+    repo = PricingConfigRepository(db)
+    return {"templates": repo.list_client_templates()}
+
+
+@router.post("/settings/client-templates")
+def save_client_template(body: ClientTemplateRequest, db=Depends(get_db)):
+    """Create or update a template override for a specific client."""
+    repo = PricingConfigRepository(db)
+    repo.upsert_client_template(body.client_email, body.subject, body.body)
+    repo.commit()
+    return {"success": True, "message": f"Template for {body.client_email} saved"}
+
+
+@router.delete("/settings/client-templates/{client_email}")
+def delete_client_template(client_email: str, db=Depends(get_db)):
+    """Remove a client-specific template override."""
+    repo = PricingConfigRepository(db)
+    deleted = repo.delete_client_template(client_email)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Template override not found")
+    repo.commit()
+    return {"success": True, "message": f"Template for {client_email} removed"}
+
+
 def _get_logo_block() -> str:
     """Return an <img> HTML block for the company logo if one exists, else empty string."""
     for ext in ("png", "jpg", "jpeg"):

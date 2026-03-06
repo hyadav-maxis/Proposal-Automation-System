@@ -112,3 +112,57 @@ class PricingConfigRepository:
 
     def rollback(self) -> None:
         self._db.rollback()
+
+    # ── Client-Specific Email Templates ───────────────────────────────────────
+
+    def get_client_template(self, client_email: str) -> Optional[Dict[str, Any]]:
+        """Return subject and body for a specific client email."""
+        cursor = self._db.cursor(cursor_factory=RealDictCursor)
+        try:
+            cursor.execute(
+                "SELECT subject, body FROM client_email_templates WHERE client_email = %s",
+                (client_email,),
+            )
+            row = cursor.fetchone()
+            return dict(row) if row else None
+        finally:
+            cursor.close()
+
+    def upsert_client_template(self, client_email: str, subject: str, body: str) -> None:
+        """Create or update a template for a specific client."""
+        cursor = self._db.cursor()
+        try:
+            cursor.execute(
+                """
+                INSERT INTO client_email_templates (client_email, subject, body, updated_at)
+                VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
+                ON CONFLICT (client_email) DO UPDATE
+                SET subject = EXCLUDED.subject,
+                    body = EXCLUDED.body,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                (client_email, subject, body),
+            )
+        finally:
+            cursor.close()
+
+    def list_client_templates(self) -> list:
+        """Return all client-specific overrides."""
+        cursor = self._db.cursor(cursor_factory=RealDictCursor)
+        try:
+            cursor.execute("SELECT * FROM client_email_templates ORDER BY client_email")
+            return [dict(r) for r in cursor.fetchall()]
+        finally:
+            cursor.close()
+
+    def delete_client_template(self, client_email: str) -> bool:
+        """Remove a client-specific template override."""
+        cursor = self._db.cursor()
+        try:
+            cursor.execute(
+                "DELETE FROM client_email_templates WHERE client_email = %s",
+                (client_email,),
+            )
+            return cursor.rowcount > 0
+        finally:
+            cursor.close()

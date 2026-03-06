@@ -1028,6 +1028,149 @@
         .test-email-row .tpl-input {
             margin-bottom: 0;
         }
+
+        /* ── Tabs Navigation ────────────────────────────────────── */
+        .settings-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 24px;
+            background: var(--surface2);
+            padding: 5px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: var(--radius-xs);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            color: var(--text);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .tab-btn.active {
+            background: var(--surface);
+            color: var(--accent);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Refined Modal Styles ────────────────────────────────── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.open .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: var(--surface2);
+        }
+
+        /* ── Override Table Fixes ────────────────────────────────── */
+        .client-card-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .client-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .client-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+            border-color: var(--accent);
+        }
+
+        .client-info h4 {
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .client-info p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .client-actions {
+            display: flex;
+            gap: 8px;
+        }
     </style>
 </head>
 
@@ -1057,150 +1200,206 @@
             <p>Manage application settings, branding, and configuration.</p>
         </div>
 
-        <!-- ── Company Logo section ───────────────────────────── -->
-        <div class="section-card">
-            <div class="section-card-header">
-                <div class="section-icon">🖼️</div>
-                <div class="section-card-header-text">
-                    <h2>Company Logo</h2>
-                    <p>Appears at the top of proposal PDFs, Excel exports, and purchase order documents.</p>
+        <!-- ── Settings Tabs ───────────────────────────────────────── -->
+        <div class="settings-tabs">
+            <button class="tab-btn active" data-tab="branding">
+                <span>🖼️</span> Branding
+            </button>
+            <button class="tab-btn" data-tab="global-email">
+                <span>✉️</span> Global Template
+            </button>
+            <button class="tab-btn" data-tab="client-emails">
+                <span>🌟</span> Personalized Templates
+            </button>
+        </div>
+
+        <!-- ── Tab: Branding (Logo) ────────────────────────────────── -->
+        <div class="tab-content active" id="branding">
+            <div class="section-card">
+                <div class="section-card-header">
+                    <div class="section-icon">🖼️</div>
+                    <div class="section-card-header-text">
+                        <h2>Company Logo</h2>
+                        <p>Appears at the top of proposal PDFs and exports.</p>
+                    </div>
                 </div>
-            </div>
 
-            <div class="section-card-body">
+                <div class="section-card-body">
+                    <!-- Active logo preview -->
+                    <div class="preview-label">Current Active Logo</div>
+                    <div class="logo-preview-card" id="logoPreviewCard">
+                        <div class="no-logo-icon" id="noLogoIcon">🖼️</div>
+                        <p class="no-logo-text" id="noLogoText">Loading logo status…</p>
+                        <img id="logoImg" src="" alt="Active company logo" style="display:none;">
+                    </div>
 
-                <!-- Active logo preview -->
-                <div class="preview-label">Current Active Logo</div>
-                <div class="logo-preview-card" id="logoPreviewCard">
-                    <div class="no-logo-icon" id="noLogoIcon">🖼️</div>
-                    <p class="no-logo-text" id="noLogoText">Loading logo status…</p>
-                    <img id="logoImg" src="" alt="Active company logo" style="display:none;">
-                </div>
+                    <!-- ── Option 1: Predefined logos ─────────────── -->
+                    <div class="divider" style="margin-top: 28px;">
+                        <span>Option 1 — Choose a Predefined Logo</span>
+                    </div>
 
-                <!-- ── Option 1: Predefined logos ─────────────── -->
-                <div class="divider" style="margin-top: 28px;">
-                    <span>Option 1 — Choose a Predefined Logo</span>
-                </div>
-
-                <div class="form-group">
-                    <label for="logoDropdownTrigger">Select from predefined logos</label>
-
-                    <div class="logo-dropdown-wrapper" id="logoDropdownWrapper">
-                        <!-- Trigger button -->
-                        <div class="logo-dropdown-trigger" id="logoDropdownTrigger" role="button" tabindex="0"
-                            aria-haspopup="listbox" aria-expanded="false">
-                            <img class="logo-dropdown-thumb" id="dropdownThumb" src="" alt="">
-                            <span class="logo-dropdown-placeholder" id="dropdownPlaceholder">— Select a logo —</span>
-                            <span class="logo-dropdown-selected-name" id="dropdownSelectedName"
-                                style="display:none;"></span>
-                            <svg class="logo-dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="6 9 12 15 18 9" />
-                            </svg>
-                        </div>
-
-                        <!-- Dropdown menu -->
-                        <div class="logo-dropdown-menu" id="logoDropdownMenu" role="listbox">
-                            <!-- Items inserted by JS -->
-                            <div style="padding: 20px; text-align:center; color: var(--text-muted); font-size:0.85rem;">
-                                Loading predefined logos…
+                    <div class="form-group">
+                        <label for="logoDropdownTrigger">Select from predefined logos</label>
+                        <div class="logo-dropdown-wrapper" id="logoDropdownWrapper">
+                            <div class="logo-dropdown-trigger" id="logoDropdownTrigger" role="button" tabindex="0">
+                                <img class="logo-dropdown-thumb" id="dropdownThumb" src="" alt="">
+                                <span class="logo-dropdown-placeholder" id="dropdownPlaceholder">— Select a logo
+                                    —</span>
+                                <span class="logo-dropdown-selected-name" id="dropdownSelectedName"
+                                    style="display:none;"></span>
+                                <svg class="logo-dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </div>
+                            <div class="logo-dropdown-menu" id="logoDropdownMenu" role="listbox">
+                                <div style="padding: 20px; text-align:center; color: var(--text-muted);">Loading…</div>
                             </div>
                         </div>
                     </div>
-                </div>
+                    <button class="btn-use-logo" id="useLogoBtn" disabled>✅ Use This Logo</button>
 
-                <button class="btn-use-logo" id="useLogoBtn" disabled>
-                    ✅ Use This Logo
-                </button>
-
-                <!-- ── Option 2: Manual upload ────────────────── -->
-                <div class="divider">
-                    <span>Option 2 — Upload a Custom Logo</span>
-                </div>
-
-                <div class="form-group">
-                    <label>Choose image (PNG or JPEG, under 2 MB)</label>
-                    <div class="file-drop-zone" id="fileDropZone">
-                        <input type="file" id="logoFile" accept="image/png,image/jpeg,image/jpg">
-                        <div class="file-drop-icon">📁</div>
-                        <div class="file-drop-text">
-                            <strong>Click to browse</strong> or drag & drop your logo here
-                        </div>
+                    <!-- ── Option 2: Manual upload ────────────────── -->
+                    <div class="divider">
+                        <span>Option 2 — Upload a Custom Logo</span>
                     </div>
-                    <div class="file-name-display" id="fileNameDisplay"></div>
+                    <div class="form-group">
+                        <div class="file-drop-zone" id="fileDropZone">
+                            <input type="file" id="logoFile" accept="image/png,image/jpeg,image/jpg">
+                            <div class="file-drop-icon">📁</div>
+                            <div class="file-drop-text"><strong>Click to browse</strong> or drag & drop</div>
+                        </div>
+                        <div class="file-name-display" id="fileNameDisplay"></div>
+                    </div>
+                    <button class="btn-upload" id="uploadBtn" disabled>⬆️ Upload Logo</button>
                 </div>
-
-                <button class="btn-upload" id="uploadBtn" disabled>
-                    ⬆️ Upload Logo
-                </button>
-
             </div>
         </div>
 
-        <!-- ── Email Template section ─────────────────────────────── -->
-        <div class="section-card">
-            <div class="section-card-header">
-                <div class="section-icon">✉️</div>
-                <div class="section-card-header-text">
-                    <h2>Email Template</h2>
-                    <p>Customise the subject and body sent to clients when you email a proposal.</p>
-                </div>
-            </div>
-
-            <div class="section-card-body">
-
-                <!-- Placeholder chips -->
-                <div class="preview-label" style="margin-bottom:8px;">Insert Placeholder</div>
-                <div class="chip-bar" id="chipBar">
-                    <span class="chip" data-token="{{client_name}}">👤 Client Name</span>
-                    <span class="chip" data-token="{{proposal_number}}">🔢 Proposal No.</span>
-                    <span class="chip" data-token="{{project_name}}">📁 Project Name</span>
-                    <span class="chip" data-token="{{logo_block}}">🖼️ Company Logo</span>
+        <!-- ── Tab: Global Template ────────────────────────────────── -->
+        <div class="tab-content" id="global-email">
+            <div class="section-card">
+                <div class="section-card-header">
+                    <div class="section-icon">✉️</div>
+                    <div class="section-card-header-text">
+                        <h2>Global Email Template</h2>
+                        <p>Sent to all clients by default.</p>
+                    </div>
                 </div>
 
-                <!-- Subject -->
-                <div class="form-group">
-                    <label for="emailSubjectInput">Email Subject</label>
-                    <input type="text" id="emailSubjectInput" class="tpl-input"
-                        placeholder="Proposal {{proposal_number}} — {{project_name}}">
-                </div>
+                <div class="section-card-body">
+                    <div class="preview-label" style="margin-bottom:8px;">Insert Placeholder</div>
+                    <div class="chip-bar" id="chipBar">
+                        <span class="chip" data-token="{{client_name}}">👤 Client Name</span>
+                        <span class="chip" data-token="{{proposal_number}}">🔢 Proposal No.</span>
+                        <span class="chip" data-token="{{project_name}}">📁 Project Name</span>
+                        <span class="chip" data-token="{{logo_block}}">🖼️ Company Logo</span>
+                    </div>
 
-                <!-- Body -->
-                <div class="form-group" style="margin-top:18px;">
-                    <div style="display:flex; align-items:flex-end; margin-bottom: 8px;">
-                        <label for="emailBodyTextarea" style="margin-bottom:0;">Email Body</label>
-                        <div class="mode-toggle">
-                            <span class="mode-label" id="modeLabelText">HTML Editor</span>
-                            <label class="switch">
-                                <input type="checkbox" id="modeSwitch">
-                                <span class="slider"></span>
-                            </label>
-                            <span class="mode-label">Plain Text</span>
+                    <div class="form-group">
+                        <label for="emailSubjectInput">Email Subject</label>
+                        <input type="text" id="emailSubjectInput" class="tpl-input"
+                            placeholder="Proposal {{proposal_number}} — {{project_name}}">
+                    </div>
+
+                    <div class="form-group" style="margin-top:18px;">
+                        <div style="display:flex; align-items:flex-end; margin-bottom: 8px;">
+                            <label for="emailBodyTextarea" style="margin-bottom:0;">Email Body</label>
+                            <div class="mode-toggle">
+                                <span class="mode-label" id="modeLabelText">HTML Editor</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="modeSwitch">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="mode-label">Plain Text</span>
+                            </div>
                         </div>
+
+                        <div class="editor-toolbar" id="editorToolbar">
+                            <button class="tool-btn" data-tag="b"><strong>B</strong></button>
+                            <button class="tool-btn" data-tag="i"><em>I</em></button>
+                            <div class="tool-divider"></div>
+                            <button class="tool-btn" data-tag="a">🔗</button>
+                        </div>
+                        <textarea id="emailBodyTextarea" class="tpl-textarea"
+                            placeholder="Enter HTML email body…"></textarea>
                     </div>
 
-                    <!-- Toolbar -->
-                    <div class="editor-toolbar" id="editorToolbar">
-                        <button class="tool-btn" data-tag="b" title="Bold"><strong>B</strong></button>
-                        <button class="tool-btn" data-tag="i" title="Italic"><em>I</em></button>
-                        <div class="tool-divider"></div>
-                        <button class="tool-btn" data-tag="a" title="Insert Link">🔗</button>
+                    <div class="btn-row">
+                        <button class="btn-save-tpl" id="saveTemplateBtn">💾 Save Template</button>
+                        <button class="btn-ghost" id="previewTemplateBtn">👁 Preview</button>
+                        <button class="btn-ghost" id="openTestEmailBtn">🧪 Send Test Email</button>
+                        <button class="btn-ghost" id="resetTemplateBtn" style="margin-left:auto;">↺ Reset
+                            Default</button>
                     </div>
-
-                    <textarea id="emailBodyTextarea" class="tpl-textarea"
-                        placeholder="Enter HTML email body…"></textarea>
                 </div>
-
-                <!-- Actions -->
-                <div class="btn-row">
-                    <button class="btn-save-tpl" id="saveTemplateBtn">💾 Save Template</button>
-                    <button class="btn-ghost" id="previewTemplateBtn">👁 Preview</button>
-                    <button class="btn-ghost" id="openTestEmailBtn">🧪 Send Test Email</button>
-                    <button class="btn-ghost" id="resetTemplateBtn" style="margin-left:auto;">↺ Reset Default</button>
-                </div>
-
             </div>
         </div>
+
+        <!-- ── Tab: Client Overrides ───────────────────────────────── -->
+        <div class="tab-content" id="client-emails">
+            <div class="section-card">
+                <div class="section-card-header">
+                    <div class="section-icon">🌟</div>
+                    <div class="section-card-header-text">
+                        <h2>Personalized Templates</h2>
+                        <p>Specific templates for particular client email addresses. These will override the Global
+                            Template.</p>
+                    </div>
+                    <button class="btn-save-tpl" id="openAddClientModalBtn"
+                        style="margin-left: auto; padding: 8px 16px; font-size: 0.8rem;">
+                        ➕ Create Custom Template
+                    </button>
+                </div>
+
+                <div class="section-card-body">
+                    <div id="clientTemplatesList" class="client-card-list">
+                        <p class="no-logo-text" style="text-align: center; padding: 20px;">No client-specific templates
+                            found.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ── Client Override Modal ────────────────────────────────────── -->
+    <div class="modal-overlay" id="clientOverrideModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="clientModalTitle">➕ Add Personalized Template</h3>
+                <button class="modal-close" id="closeClientModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="clientEmailOverride">Client Email</label>
+                    <input type="email" id="clientEmailOverride" class="tpl-input" placeholder="client@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="clientSubjectOverride">Override Subject</label>
+                    <input type="text" id="clientSubjectOverride" class="tpl-input"
+                        placeholder="Subject line for this client...">
+                </div>
+
+                <div class="form-group">
+                    <label for="clientBodyOverride">Override Body (HTML)</label>
+                    <div class="editor-toolbar" id="clientEditorToolbar"
+                        style="border-radius: 8px 8px 0 0; border-bottom: 1px solid var(--border);">
+                        <button class="tool-btn"
+                            onclick="wrapTag('clientBodyOverride', 'b')"><strong>B</strong></button>
+                        <button class="tool-btn" onclick="wrapTag('clientBodyOverride', 'i')"><em>I</em></button>
+                    </div>
+                    <textarea id="clientBodyOverride" class="tpl-textarea" style="min-height: 200px;"
+                        placeholder="Custom HTML..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-ghost" id="cancelClientModalBtn">Cancel</button>
+                <button class="btn-save-tpl" id="saveClientTplBtn">💾 Save Override</button>
+            </div>
+        </div>
+    </div>
 
     </main>
 
@@ -1524,7 +1723,24 @@
 
     <script>
         /* ═══════════════════════════════════════════════════════════
-           Email Template section
+           Tabs Logic
+        ═══════════════════════════════════════════════════════════ */
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+
+                // Update buttons
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        /* ═══════════════════════════════════════════════════════════
+           Global Email Template section
         ═══════════════════════════════════════════════════════════ */
         const subjectEl = document.getElementById('emailSubjectInput');
         const bodyEl = document.getElementById('emailBodyTextarea');
@@ -1533,39 +1749,54 @@
         const modeLabelText = document.getElementById('modeLabelText');
 
         let activeInput = subjectEl;
-        let currentMode = 'html'; // default
+        let currentMode = 'html';
 
-        // Track focus
         subjectEl.addEventListener('focus', () => activeInput = subjectEl);
         bodyEl.addEventListener('focus', () => activeInput = bodyEl);
 
-        /* ── Toolbar formatting ──────────────────────────────────── */
         toolbar.querySelectorAll('.tool-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 const tag = btn.dataset.tag;
-                const start = bodyEl.selectionStart;
-                const end = bodyEl.selectionEnd;
-                const selected = bodyEl.value.substring(start, end);
-
-                let wrapped = '';
-                if (tag === 'a') {
-                    const url = prompt('Enter URL:', 'https://');
-                    if (!url) return;
-                    wrapped = `<a href="${url}">${selected || 'Link Text'}</a>`;
-                } else {
-                    wrapped = `<${tag}>${selected}</${tag}>`;
-                }
-
-                bodyEl.value = bodyEl.value.slice(0, start) + wrapped + bodyEl.value.slice(end);
-                bodyEl.focus();
-                bodyEl.setSelectionRange(start + wrapped.length, start + wrapped.length);
+                wrapTag('emailBodyTextarea', tag);
             });
         });
 
-        /* ── Mode Switching ──────────────────────────────────────── */
+        function wrapTag(elId, tag) {
+            const el = document.getElementById(elId);
+            const start = el.selectionStart;
+            const end = el.selectionEnd;
+            const selected = el.value.substring(start, end);
+
+            let wrapped = '';
+            if (tag === 'a') {
+                const url = prompt('Enter URL:', 'https://');
+                if (!url) return;
+                wrapped = `<a href="${url}">${selected || 'Link Text'}</a>`;
+            } else {
+                wrapped = `<${tag}>${selected}</${tag}>`;
+            }
+
+            el.value = el.value.slice(0, start) + wrapped + el.value.slice(end);
+            el.focus();
+            el.setSelectionRange(start + wrapped.length, start + wrapped.length);
+        }
+
         modeSwitch.addEventListener('change', () => {
-            currentMode = modeSwitch.checked ? 'plain' : 'html';
+            const newMode = modeSwitch.checked ? 'plain' : 'html';
+
+            // If switching to plain and body has HTML, confirm and clear
+            if (newMode === 'plain' && /<[a-z][\s\S]*>/i.test(bodyEl.value)) {
+                if (confirm('Switching to Plain Text mode will clear the current HTML structure for a fresh start. Continue?')) {
+                    bodyEl.value = "";
+                } else {
+                    // Revert switch
+                    modeSwitch.checked = false;
+                    return;
+                }
+            }
+
+            currentMode = newMode;
             updateUIForMode();
         });
 
@@ -1573,8 +1804,8 @@
             if (currentMode === 'plain') {
                 toolbar.style.opacity = '0.4';
                 toolbar.style.pointerEvents = 'none';
-                modeLabelText.textContent = 'HTML Editor';
-                bodyEl.placeholder = 'Type your message here... no HTML needed. We will wrap it in a professional layout.';
+                modeLabelText.textContent = 'Plain Text (wrapped)';
+                bodyEl.placeholder = 'Type your message here... no HTML needed.';
             } else {
                 toolbar.style.opacity = '1';
                 toolbar.style.pointerEvents = 'auto';
@@ -1583,7 +1814,6 @@
             }
         }
 
-        /* ── Chip insertion ──────────────────────────────────────── */
         document.getElementById('chipBar').querySelectorAll('.chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 const token = chip.dataset.token;
@@ -1596,7 +1826,6 @@
             });
         });
 
-        /* ── Load template from API ──────────────────────────────── */
         async function loadEmailTemplate() {
             try {
                 const r = await fetch(`${API}/api/settings/email-template`);
@@ -1604,52 +1833,139 @@
                 subjectEl.value = data.subject || '';
                 bodyEl.value = data.body || '';
                 currentMode = data.mode || 'html';
-
                 modeSwitch.checked = (currentMode === 'plain');
                 updateUIForMode();
-            } catch {
-                showToast('Could not load email template.', 'error');
-            }
+            } catch { showToast('Could not load email template.', 'error'); }
         }
 
-        /* ── Save template ───────────────────────────────────────── */
         const saveTemplateBtn = document.getElementById('saveTemplateBtn');
         saveTemplateBtn.addEventListener('click', async () => {
-            if (!subjectEl.value.trim()) {
-                showToast('Subject cannot be empty.', 'error');
-                return;
-            }
+            if (!subjectEl.value.trim()) { showToast('Subject cannot be empty.', 'error'); return; }
             saveTemplateBtn.disabled = true;
             saveTemplateBtn.innerHTML = '<span class="spinner-sm"></span> Saving…';
             try {
                 const r = await fetch(`${API}/api/settings/email-template`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        subject: subjectEl.value,
-                        body: bodyEl.value,
-                        mode: currentMode
-                    }),
+                    body: JSON.stringify({ subject: subjectEl.value, body: bodyEl.value, mode: currentMode }),
                 });
-                const data = await r.json();
-                if (!r.ok) throw new Error(data.detail || 'Save failed');
-                showToast('✅ Email template saved!', 'success');
-            } catch (err) {
-                showToast('Error: ' + err.message, 'error');
-            } finally {
-                saveTemplateBtn.disabled = false;
-                saveTemplateBtn.innerHTML = '💾 Save Template';
-            }
+                if (!r.ok) throw new Error('Save failed');
+                showToast('✅ Global email template saved!', 'success');
+            } catch (err) { showToast('Error: ' + err.message, 'error'); }
+            finally { saveTemplateBtn.disabled = false; saveTemplateBtn.innerHTML = '💾 Save Template'; }
         });
 
-        /* ── Reset to default ────────────────────────────────────── */
         document.getElementById('resetTemplateBtn').addEventListener('click', async () => {
-            if (!confirm('Reset to the built-in default template? This will overwrite your current template.')) return;
+            if (!confirm('Reset to defaults?')) return;
             await loadEmailTemplate();
-            showToast('Template reset to default (not yet saved).', 'info');
         });
 
-        /* ── Preview modal ───────────────────────────────────────── */
+        /* ═══════════════════════════════════════════════════════════
+           Client-Specific Modal & Logic
+        ═══════════════════════════════════════════════════════════ */
+        const clientModal = document.getElementById('clientOverrideModal');
+        const clientEmailInp = document.getElementById('clientEmailOverride');
+        const clientSubInp = document.getElementById('clientSubjectOverride');
+        const clientBodyInp = document.getElementById('clientBodyOverride');
+        const saveClientBtn = document.getElementById('saveClientTplBtn');
+
+        let _cachedTemplates = [];
+
+        function openModal(email = '', subject = '', body = '') {
+            clientEmailInp.value = email;
+            clientSubInp.value = subject;
+            clientBodyInp.value = body;
+            clientEmailInp.readOnly = !!email;
+            document.getElementById('clientModalTitle').textContent = email ? 'Edit Personalized Template' : 'Add Personalized Template';
+            clientModal.classList.add('open');
+        }
+
+        function closeModal() {
+            clientModal.classList.remove('open');
+        }
+
+        document.getElementById('openAddClientModalBtn').addEventListener('click', () => openModal());
+        document.getElementById('closeClientModal').addEventListener('click', closeModal);
+        document.getElementById('cancelClientModalBtn').addEventListener('click', closeModal);
+
+        async function loadClientTemplates() {
+            try {
+                const r = await fetch(`${API}/api/settings/client-templates`);
+                const data = await r.json();
+                _cachedTemplates = data.templates || [];
+                renderClientTemplates(_cachedTemplates);
+            } catch (err) { console.error(err); }
+        }
+
+        function renderClientTemplates(templates) {
+            const list = document.getElementById('clientTemplatesList');
+            if (!templates.length) {
+                list.innerHTML = '<p class="no-logo-text" style="text-align: center; padding: 20px;">No overrides found.</p>';
+                return;
+            }
+
+            list.innerHTML = templates.map((t, idx) => `
+                <div class="client-card">
+                    <div class="client-info">
+                        <h4>${t.client_email}</h4>
+                        <p>${t.subject.substring(0, 50)}${t.subject.length > 50 ? '...' : ''}</p>
+                    </div>
+                    <div class="client-actions">
+                        <button class="btn-ghost" onclick="previewOverride(${idx})">👁️ Preview</button>
+                        <button class="btn-ghost" onclick="editOverride(${idx})">✏️ Edit</button>
+                        <button class="btn-ghost" style="color:var(--red);" onclick="deleteOverride('${t.client_email}')">🗑️ Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.editOverride = (idx) => {
+            const t = _cachedTemplates[idx];
+            if (t) openModal(t.client_email, t.subject, t.body);
+        };
+
+        window.previewOverride = (idx) => {
+            const t = _cachedTemplates[idx];
+            if (t) {
+                // Smart detection: If no obvious HTML tags, treat as plain text (wrapped)
+                const isPlain = !/<[a-z][\s\S]*>/i.test(t.body);
+                renderPreview(t.subject, t.body, isPlain);
+            }
+        };
+
+        window.deleteOverride = async (email) => {
+            if (!confirm(`Delete override for ${email}?`)) return;
+            try {
+                await fetch(`${API}/api/settings/client-templates/${email}`, { method: 'DELETE' });
+                showToast(`Deleted ${email}`, 'success');
+                loadClientTemplates();
+            } catch (err) { showToast('Delete failed', 'error'); }
+        };
+
+        saveClientBtn.addEventListener('click', async () => {
+            const email = clientEmailInp.value.trim();
+            const subject = clientSubInp.value.trim();
+            const body = clientBodyInp.value.trim();
+
+            if (!email || !subject || !body) { showToast('All fields required', 'error'); return; }
+            saveClientBtn.disabled = true;
+            try {
+                const r = await fetch(`${API}/api/settings/client-templates`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ client_email: email, subject, body }),
+                });
+                if (!r.ok) throw new Error('Save failed');
+                showToast('✅ Saved!', 'success');
+                closeModal();
+                loadClientTemplates();
+            } catch (err) { showToast(err.message, 'error'); }
+            finally { saveClientBtn.disabled = false; }
+        });
+
+        /* ═══════════════════════════════════════════════════════════
+           Preview & Test
+        ═══════════════════════════════════════════════════════════ */
         const previewModal = document.getElementById('previewModal');
         const previewSubjectLine = document.getElementById('previewSubjectLine');
         const previewIframe = document.getElementById('previewIframe');
@@ -1669,16 +1985,21 @@
             return out;
         }
 
-        document.getElementById('previewTemplateBtn').addEventListener('click', () => {
-            const subject = applyPlaceholders(subjectEl.value || 'No subject');
-            let body = applyPlaceholders(bodyEl.value || 'No body content.');
+        function renderPreview(rawSubject, rawBody, isPlain) {
+            const subject = applyPlaceholders(rawSubject || 'No subject');
+            let body = applyPlaceholders(rawBody || 'No body content.');
 
-            // If in plain text mode, apply professional wrapping for preview
-            if (currentMode === 'plain') {
+            if (isPlain) {
                 const safeMsg = body.replace(/\n/g, '<br>');
+                const logoImg = document.getElementById('logoImg');
+                const logoHtml = (logoImg && logoImg.style.display !== 'none')
+                    ? `<div style="text-align:center;padding:24px 36px 0;"><img src="${logoImg.src}" style="max-height:70px;max-width:220px;object-fit:contain;" alt="Logo" /></div>`
+                    : '';
+
                 body = `
                 <html>
                   <body style="margin:0;padding:0;background:#f8f9fc;font-family:'Segoe UI',Arial,sans-serif;">
+                    ${logoHtml}
                     <div style="max-width:600px;margin:20px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,0.05);border:1px solid #eef0f5;">
                       <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:40px;text-align:left;">
                         <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">Proposal Update</h1>
@@ -1700,31 +2021,23 @@
             doc.write(body);
             doc.close();
             previewModal.classList.add('open');
+        }
+
+        document.getElementById('previewTemplateBtn').addEventListener('click', () => {
+            renderPreview(subjectEl.value, bodyEl.value, currentMode === 'plain');
         });
 
-        document.getElementById('closePreviewModal').addEventListener('click', () => {
-            previewModal.classList.remove('open');
-        });
-        previewModal.addEventListener('click', e => {
-            if (e.target === previewModal) previewModal.classList.remove('open');
-        });
+        document.getElementById('closePreviewModal').addEventListener('click', () => previewModal.classList.remove('open'));
+        document.getElementById('closeTestModal').addEventListener('click', () => document.getElementById('testEmailModal').classList.remove('open'));
+        document.getElementById('cancelTestBtn').addEventListener('click', () => document.getElementById('testEmailModal').classList.remove('open'));
 
-        /* ── Test Email modal ────────────────────────────────────── */
+        /* ── Test Email Logic ───────────────────────── */
         const testModal = document.getElementById('testEmailModal');
         const testAddrEl = document.getElementById('testEmailAddress');
         const sendTestBtn = document.getElementById('sendTestBtn');
 
         document.getElementById('openTestEmailBtn').addEventListener('click', () => {
             testModal.classList.add('open');
-        });
-        document.getElementById('closeTestModal').addEventListener('click', () => {
-            testModal.classList.remove('open');
-        });
-        document.getElementById('cancelTestBtn').addEventListener('click', () => {
-            testModal.classList.remove('open');
-        });
-        testModal.addEventListener('click', e => {
-            if (e.target === testModal) testModal.classList.remove('open');
         });
 
         sendTestBtn.addEventListener('click', async () => {
@@ -1744,8 +2057,7 @@
                         body: bodyEl.value || null,
                     }),
                 });
-                const data = await r.json();
-                if (!r.ok) throw new Error(data.detail || 'Send failed');
+                if (!r.ok) throw new Error('Send failed');
                 showToast(`✅ Test email sent to ${addr}!`, 'success');
                 testModal.classList.remove('open');
             } catch (err) {
@@ -1755,6 +2067,14 @@
                 sendTestBtn.innerHTML = '🚀 Send Test Email';
             }
         });
+
+        /* ─────────────────────────────────────────────────────────
+           Init everything
+        ───────────────────────────────────────────────────────── */
+        loadLogoStatus();
+        loadPredefinedLogos();
+        loadEmailTemplate();
+        loadClientTemplates();
     </script>
 </body>
 
