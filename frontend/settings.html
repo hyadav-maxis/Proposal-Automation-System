@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings — Proposal Automation System</title>
+    <meta name="description" content="Configure company settings including logo, branding, and preferences.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ── Reset & base ─────────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #f5f6fa;
+            --surface: #ffffff;
+            --surface2: #f8f9fc;
+            --border: #e8eaf0;
+            --accent: #6366f1;
+            --accent2: #4f46e5;
+            --accent-glow: rgba(99, 102, 241, 0.13);
+            --green: #16a34a;
+            --green-bg: #dcfce7;
+            --red: #dc2626;
+            --red-bg: #fee2e2;
+            --amber: #d97706;
+            --amber-bg: #fef3c7;
+            --blue: #2563eb;
+            --blue-bg: #dbeafe;
+            --text: #1e2433;
+            --text-secondary: #4b5563;
+            --text-muted: #9ca3af;
+            --badge-draft: rgba(217, 119, 6, 0.12);
+            --badge-draft-text: #d97706;
+            --radius: 14px;
+            --radius-sm: 10px;
+            --radius-xs: 7px;
+            --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06), 0 2px 12px rgba(0, 0, 0, 0.04);
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.07), 0 8px 32px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        /* ── Top bar ────────────────────────────────────────────── */
+        .topbar {
+            background: var(--surface);
+            padding: 0 32px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-brand {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .topbar-brand span {
+            font-size: 1.5rem;
+        }
+
+        .topbar-nav {
+            display: flex;
+            gap: 6px;
+        }
+
+        .topbar-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+
+        .topbar-nav a:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .topbar-nav a.active {
+            background: var(--accent-glow);
+            color: var(--accent);
+        }
+
+        /* ── Page layout ─────────────────────────────────────────── */
+        .page {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        .page-header {
+            margin-bottom: 36px;
+        }
+
+        .page-header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 6px;
+        }
+
+        /* ── Section card ────────────────────────────────────────── */
+        .section-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .section-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface2);
+        }
+
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, rgba(124, 110, 242, 0.25), rgba(90, 79, 207, 0.15));
+            border: 1px solid rgba(124, 110, 242, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .section-card-header-text h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .section-card-header-text p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .section-card-body {
+            padding: 28px;
+        }
+
+        /* ── Divider ─────────────────────────────────────────────── */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 28px 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .divider span {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* ── Form group ──────────────────────────────────────────── */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Custom dropdown ─────────────────────────────────────── */
+        .logo-dropdown-wrapper {
+            position: relative;
+        }
+
+        .logo-dropdown-trigger {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            user-select: none;
+        }
+
+        .logo-dropdown-trigger:hover,
+        .logo-dropdown-trigger.open {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .logo-dropdown-thumb {
+            width: 44px;
+            height: 32px;
+            border-radius: 5px;
+            object-fit: contain;
+            background: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+            display: none;
+        }
+
+        .logo-dropdown-thumb.visible {
+            display: block;
+        }
+
+        .logo-dropdown-placeholder {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .logo-dropdown-selected-name {
+            flex: 1;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+
+        .logo-dropdown-arrow {
+            margin-left: auto;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .logo-dropdown-trigger.open .logo-dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .logo-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: var(--surface2);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius-sm);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            overflow: hidden;
+            animation: dropIn 0.18s ease;
+        }
+
+        .logo-dropdown-menu.open {
+            display: block;
+        }
+
+        @keyframes dropIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .logo-dropdown-item:hover {
+            background: rgba(124, 110, 242, 0.1);
+        }
+
+        .logo-dropdown-item.selected {
+            background: rgba(124, 110, 242, 0.15);
+        }
+
+        .logo-dropdown-item img {
+            width: 60px;
+            height: 40px;
+            object-fit: contain;
+            background: #fff;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 4px;
+            flex-shrink: 0;
+        }
+
+        .logo-item-info {
+            flex: 1;
+        }
+
+        .logo-item-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .logo-item-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .logo-item-check {
+            color: var(--accent);
+            font-size: 1.1rem;
+            display: none;
+        }
+
+        .logo-dropdown-item.selected .logo-item-check {
+            display: block;
+        }
+
+        /* ── Predefined action button ────────────────────────────── */
+        .btn-use-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 11px 22px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+            box-shadow: 0 4px 14px rgba(102, 126, 234, 0.35);
+            margin-top: 14px;
+        }
+
+        .btn-use-logo:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+
+        .btn-use-logo:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ── File upload area ────────────────────────────────────── */
+        .file-drop-zone {
+            position: relative;
+            width: 100%;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface2);
+            padding: 24px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .file-drop-zone:hover,
+        .file-drop-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(124, 110, 242, 0.06);
+        }
+
+        .file-drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-drop-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        .file-drop-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .file-drop-text strong {
+            color: var(--accent);
+        }
+
+        .file-name-display {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: var(--text);
+            background: rgba(124, 110, 242, 0.1);
+            border: 1px solid rgba(124, 110, 242, 0.2);
+            border-radius: 6px;
+            padding: 6px 12px;
+            display: none;
+        }
+
+        .file-name-display.visible {
+            display: block;
+        }
+
+        /* ── Upload button ───────────────────────────────────────── */
+        .btn-upload {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface3);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 11px 22px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            margin-top: 14px;
+        }
+
+        .btn-upload:hover:not(:disabled) {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(124, 110, 242, 0.08);
+        }
+
+        .btn-upload:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        /* ── Active logo preview ─────────────────────────────────── */
+        .logo-preview-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 24px;
+            text-align: center;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-preview-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .logo-preview-card img {
+            max-width: 280px;
+            max-height: 110px;
+            object-fit: contain;
+        }
+
+        .logo-preview-card .no-logo-text {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .logo-preview-card .no-logo-icon {
+            font-size: 2.5rem;
+            opacity: 0.25;
+        }
+
+        .preview-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        /* ── Active badge ────────────────────────────────────────── */
+        .active-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--green);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+
+        /* ── Toast notifications ─────────────────────────────────── */
+        #toast-container {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            pointer-events: auto;
+            animation: toastIn 0.3s ease;
+            max-width: 340px;
+            border: 1px solid;
+        }
+
+        .toast.success {
+            background: #dcfce7;
+            border-color: rgba(22, 163, 74, 0.3);
+            color: #16a34a;
+        }
+
+        .toast.error {
+            background: #fee2e2;
+            border-color: rgba(220, 38, 38, 0.3);
+            color: #dc2626;
+        }
+
+        .toast.info {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.25);
+            color: var(--accent);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ── Spinner ─────────────────────────────────────────────── */
+        .spinner-sm {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── Email Template card & Toolbar ──────────────────────────── */
+        .chip-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            cursor: pointer;
+            transition: background 0.15s, transform 0.12s;
+            user-select: none;
+            font-family: 'Inter', monospace;
+        }
+
+        .chip:hover {
+            background: rgba(99, 102, 241, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .chip:active {
+            transform: scale(0.96);
+        }
+
+        /* Toolbar styles */
+        .editor-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--surface2);
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px 8px 0 0;
+            border-bottom: none;
+        }
+
+        .tool-btn {
+            background: none;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 4px 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: var(--surface);
+            color: var(--accent);
+            border-color: var(--border);
+        }
+
+        .tool-divider {
+            width: 1px;
+            height: 18px;
+            background: var(--border);
+            margin: 0 4px;
+        }
+
+        /* Toggle switch */
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .mode-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 18px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: var(--border);
+            transition: .3s;
+            border-radius: 18px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(16px);
+        }
+
+        .tpl-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .tpl-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .tpl-textarea {
+            width: 100%;
+            min-height: 260px;
+            padding: 14px 16px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-top: none;
+            /* Connect to toolbar */
+            border-radius: 0 0 8px 8px;
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            line-height: 1.65;
+            resize: vertical;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .tpl-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-save-tpl {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 11px 24px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(102, 126, 234, 0.35);
+        }
+
+        .btn-save-tpl:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+
+        .btn-save-tpl:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(99, 102, 241, 0.06);
+        }
+
+        /* ── Preview modal ───────────────────────────────────────────── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-box {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 680px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.25s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.15s;
+        }
+
+        .modal-close:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            padding: 20px 24px;
+            flex: 1;
+        }
+
+        .email-mockup {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+        }
+
+        .email-mockup-bar {
+            background: var(--surface2);
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .email-mockup-dots span {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+
+        .em-red {
+            background: #ff5f57;
+        }
+
+        .em-amber {
+            background: #febc2e;
+        }
+
+        .em-green {
+            background: #28c840;
+        }
+
+        .email-mockup-subject {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .email-mockup-subject strong {
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+
+        .email-mockup-subject span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .email-mockup-iframe {
+            width: 100%;
+            min-height: 340px;
+            border: none;
+            display: block;
+        }
+
+        /* ── Test-email sub-form ─────────────────────────────────────── */
+        .test-email-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            align-items: flex-end;
+        }
+
+        .test-email-row .tpl-input {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── Top navigation bar ─────────────────────────────────── -->
+    <header class="topbar">
+        <a href="/" class="topbar-brand">
+            <div
+                style="width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">
+                🚀</div> Proposal Automation System
+        </a>
+        <nav class="topbar-nav">
+            <a href="/">Proposal Form</a>
+            <a href="/proposals">All Proposals</a>
+            <a href="/pricing-config">Pricing Config</a>
+            <a href="/chat">AI Assistant</a>
+            <a href="/settings" class="active">Settings</a>
+        </nav>
+    </header>
+
+    <!-- ── Page content ───────────────────────────────────────── -->
+    <main class="page">
+
+        <div class="page-header">
+            <h1>⚙️ Settings</h1>
+            <p>Manage application settings, branding, and configuration.</p>
+        </div>
+
+        <!-- ── Company Logo section ───────────────────────────── -->
+        <div class="section-card">
+            <div class="section-card-header">
+                <div class="section-icon">🖼️</div>
+                <div class="section-card-header-text">
+                    <h2>Company Logo</h2>
+                    <p>Appears at the top of proposal PDFs, Excel exports, and purchase order documents.</p>
+                </div>
+            </div>
+
+            <div class="section-card-body">
+
+                <!-- Active logo preview -->
+                <div class="preview-label">Current Active Logo</div>
+                <div class="logo-preview-card" id="logoPreviewCard">
+                    <div class="no-logo-icon" id="noLogoIcon">🖼️</div>
+                    <p class="no-logo-text" id="noLogoText">Loading logo status…</p>
+                    <img id="logoImg" src="" alt="Active company logo" style="display:none;">
+                </div>
+
+                <!-- ── Option 1: Predefined logos ─────────────── -->
+                <div class="divider" style="margin-top: 28px;">
+                    <span>Option 1 — Choose a Predefined Logo</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="logoDropdownTrigger">Select from predefined logos</label>
+
+                    <div class="logo-dropdown-wrapper" id="logoDropdownWrapper">
+                        <!-- Trigger button -->
+                        <div class="logo-dropdown-trigger" id="logoDropdownTrigger" role="button" tabindex="0"
+                            aria-haspopup="listbox" aria-expanded="false">
+                            <img class="logo-dropdown-thumb" id="dropdownThumb" src="" alt="">
+                            <span class="logo-dropdown-placeholder" id="dropdownPlaceholder">— Select a logo —</span>
+                            <span class="logo-dropdown-selected-name" id="dropdownSelectedName"
+                                style="display:none;"></span>
+                            <svg class="logo-dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </div>
+
+                        <!-- Dropdown menu -->
+                        <div class="logo-dropdown-menu" id="logoDropdownMenu" role="listbox">
+                            <!-- Items inserted by JS -->
+                            <div style="padding: 20px; text-align:center; color: var(--text-muted); font-size:0.85rem;">
+                                Loading predefined logos…
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-use-logo" id="useLogoBtn" disabled>
+                    ✅ Use This Logo
+                </button>
+
+                <!-- ── Option 2: Manual upload ────────────────── -->
+                <div class="divider">
+                    <span>Option 2 — Upload a Custom Logo</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Choose image (PNG or JPEG, under 2 MB)</label>
+                    <div class="file-drop-zone" id="fileDropZone">
+                        <input type="file" id="logoFile" accept="image/png,image/jpeg,image/jpg">
+                        <div class="file-drop-icon">📁</div>
+                        <div class="file-drop-text">
+                            <strong>Click to browse</strong> or drag & drop your logo here
+                        </div>
+                    </div>
+                    <div class="file-name-display" id="fileNameDisplay"></div>
+                </div>
+
+                <button class="btn-upload" id="uploadBtn" disabled>
+                    ⬆️ Upload Logo
+                </button>
+
+            </div>
+        </div>
+
+        <!-- ── Email Template section ─────────────────────────────── -->
+        <div class="section-card">
+            <div class="section-card-header">
+                <div class="section-icon">✉️</div>
+                <div class="section-card-header-text">
+                    <h2>Email Template</h2>
+                    <p>Customise the subject and body sent to clients when you email a proposal.</p>
+                </div>
+            </div>
+
+            <div class="section-card-body">
+
+                <!-- Placeholder chips -->
+                <div class="preview-label" style="margin-bottom:8px;">Insert Placeholder</div>
+                <div class="chip-bar" id="chipBar">
+                    <span class="chip" data-token="{{client_name}}">👤 Client Name</span>
+                    <span class="chip" data-token="{{proposal_number}}">🔢 Proposal No.</span>
+                    <span class="chip" data-token="{{project_name}}">📁 Project Name</span>
+                    <span class="chip" data-token="{{logo_block}}">🖼️ Company Logo</span>
+                </div>
+
+                <!-- Subject -->
+                <div class="form-group">
+                    <label for="emailSubjectInput">Email Subject</label>
+                    <input type="text" id="emailSubjectInput" class="tpl-input"
+                        placeholder="Proposal {{proposal_number}} — {{project_name}}">
+                </div>
+
+                <!-- Body -->
+                <div class="form-group" style="margin-top:18px;">
+                    <div style="display:flex; align-items:flex-end; margin-bottom: 8px;">
+                        <label for="emailBodyTextarea" style="margin-bottom:0;">Email Body</label>
+                        <div class="mode-toggle">
+                            <span class="mode-label" id="modeLabelText">HTML Editor</span>
+                            <label class="switch">
+                                <input type="checkbox" id="modeSwitch">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="mode-label">Plain Text</span>
+                        </div>
+                    </div>
+
+                    <!-- Toolbar -->
+                    <div class="editor-toolbar" id="editorToolbar">
+                        <button class="tool-btn" data-tag="b" title="Bold"><strong>B</strong></button>
+                        <button class="tool-btn" data-tag="i" title="Italic"><em>I</em></button>
+                        <div class="tool-divider"></div>
+                        <button class="tool-btn" data-tag="a" title="Insert Link">🔗</button>
+                    </div>
+
+                    <textarea id="emailBodyTextarea" class="tpl-textarea"
+                        placeholder="Enter HTML email body…"></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="btn-row">
+                    <button class="btn-save-tpl" id="saveTemplateBtn">💾 Save Template</button>
+                    <button class="btn-ghost" id="previewTemplateBtn">👁 Preview</button>
+                    <button class="btn-ghost" id="openTestEmailBtn">🧪 Send Test Email</button>
+                    <button class="btn-ghost" id="resetTemplateBtn" style="margin-left:auto;">↺ Reset Default</button>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ── Email Template Preview Modal ─────────────────────────── -->
+    <div class="modal-overlay" id="previewModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>📧 Email Preview</h3>
+                <button class="modal-close" id="closePreviewModal" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="email-mockup" id="emailMockup">
+                    <div class="email-mockup-bar">
+                        <span class="email-mockup-dots">
+                            <span class="em-red"></span>
+                            <span class="em-amber"></span>
+                            <span class="em-green"></span>
+                        </span>
+                        <span>Email Preview — sample data</span>
+                    </div>
+                    <div class="email-mockup-subject">
+                        <strong id="previewSubjectLine">—</strong><br>
+                        <span>To: <strong>john.doe@example.com</strong></span>
+                    </div>
+                    <iframe class="email-mockup-iframe" id="previewIframe" title="Email body preview"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Test Email Modal ───────────────────────────────────────── -->
+    <div class="modal-overlay" id="testEmailModal">
+        <div class="modal-box" style="max-width:460px;">
+            <div class="modal-header">
+                <h3>🧪 Send Test Email</h3>
+                <button class="modal-close" id="closeTestModal" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:16px;">
+                    A test email will be sent using sample data<br>
+                    (<em>John Doe / PROP-20240305-120000 / My Test Project</em>).
+                </p>
+                <label class="form-group" style="display:block;">
+                    <span
+                        style="font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);">Recipient
+                        Email</span>
+                    <input type="email" id="testEmailAddress" class="tpl-input" style="margin-top:8px;"
+                        placeholder="you@example.com">
+                </label>
+                <div class="btn-row">
+                    <button class="btn-save-tpl" id="sendTestBtn">🚀 Send Test Email</button>
+                    <button class="btn-ghost" id="cancelTestBtn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Toast container ────────────────────────────────────── -->
+    <div id="toast-container"></div>
+
+    <script>
+        const API = window.location.origin;
+
+        /* ─────────────────────────────────────────────────────────
+           Toast notifications
+        ───────────────────────────────────────────────────────── */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        /* ─────────────────────────────────────────────────────────
+           Logo preview utilities
+        ───────────────────────────────────────────────────────── */
+        function updateActivePreview(url) {
+            const img = document.getElementById('logoImg');
+            const icon = document.getElementById('noLogoIcon');
+            const text = document.getElementById('noLogoText');
+
+            if (url) {
+                img.src = url;
+                img.style.display = 'inline';
+                icon.style.display = 'none';
+                text.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                icon.style.display = 'block';
+                text.textContent = 'No logo set. Choose or upload one below.';
+                text.style.display = 'block';
+            }
+        }
+
+        async function loadLogoStatus() {
+            try {
+                const r = await fetch(`${API}/api/settings/logo`);
+                const data = await r.json();
+                updateActivePreview(data.has_logo ? API + data.url : null);
+            } catch {
+                document.getElementById('noLogoText').textContent = 'Could not load logo status.';
+            }
+        }
+
+        /* ─────────────────────────────────────────────────────────
+           Predefined logos dropdown
+        ───────────────────────────────────────────────────────── */
+        let predefinedLogos = [];
+        let selectedLogoId = null;
+
+        const trigger = document.getElementById('logoDropdownTrigger');
+        const menu = document.getElementById('logoDropdownMenu');
+        const thumb = document.getElementById('dropdownThumb');
+        const placeholder = document.getElementById('dropdownPlaceholder');
+        const selectedName = document.getElementById('dropdownSelectedName');
+        const useLogoBtn = document.getElementById('useLogoBtn');
+
+        async function loadPredefinedLogos() {
+            try {
+                const r = await fetch(`${API}/api/settings/predefined-logos`);
+                const data = await r.json();
+                predefinedLogos = data.logos || [];
+                renderDropdownItems(predefinedLogos);
+            } catch {
+                menu.innerHTML = '<div style="padding:16px; color:var(--red); font-size:0.85rem;">Failed to load predefined logos.</div>';
+            }
+        }
+
+        function renderDropdownItems(logos) {
+            if (!logos.length) {
+                menu.innerHTML = '<div style="padding:16px; color:var(--text-muted); font-size:0.85rem;">No predefined logos found in /static/</div>';
+                return;
+            }
+
+            menu.innerHTML = logos.map(logo => `
+                <div class="logo-dropdown-item" role="option" data-id="${logo.id}" data-url="${API}${logo.url}" data-name="${logo.name}">
+                    <img src="${API}${logo.url}" alt="${logo.name}" loading="lazy">
+                    <div class="logo-item-info">
+                        <div class="logo-item-name">${logo.name}</div>
+                        <div class="logo-item-sub">${logo.file || ''}</div>
+                    </div>
+                    <span class="logo-item-check">✓</span>
+                </div>
+            `).join('');
+
+            // Attach click listeners
+            menu.querySelectorAll('.logo-dropdown-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    selectLogoItem(item.dataset.id, item.dataset.url, item.dataset.name);
+                    closeDropdown();
+                });
+            });
+        }
+
+        function selectLogoItem(id, url, name) {
+            selectedLogoId = id;
+
+            // Update trigger appearance
+            thumb.src = url;
+            thumb.classList.add('visible');
+            placeholder.style.display = 'none';
+            selectedName.style.display = 'block';
+            selectedName.textContent = name;
+
+            // Highlight selected item in menu
+            menu.querySelectorAll('.logo-dropdown-item').forEach(item => {
+                item.classList.toggle('selected', item.dataset.id === id);
+            });
+
+            useLogoBtn.disabled = false;
+        }
+
+        function openDropdown() {
+            trigger.classList.add('open');
+            menu.classList.add('open');
+            trigger.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeDropdown() {
+            trigger.classList.remove('open');
+            menu.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+
+        trigger.addEventListener('click', () => {
+            trigger.classList.contains('open') ? closeDropdown() : openDropdown();
+        });
+
+        trigger.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                trigger.classList.contains('open') ? closeDropdown() : openDropdown();
+            }
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', e => {
+            if (!document.getElementById('logoDropdownWrapper').contains(e.target)) {
+                closeDropdown();
+            }
+        });
+
+        // "Use This Logo" button
+        useLogoBtn.addEventListener('click', async () => {
+            if (!selectedLogoId) return;
+
+            useLogoBtn.disabled = true;
+            useLogoBtn.innerHTML = '<span class="spinner-sm"></span> Applying…';
+
+            try {
+                const r = await fetch(`${API}/api/settings/logo/select`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ logo_id: selectedLogoId }),
+                });
+                const data = await r.json();
+
+                if (!r.ok) {
+                    showToast(data.detail || 'Failed to apply logo.', 'error');
+                } else {
+                    showToast(`${data.name} is now the active company logo!`, 'success');
+                    updateActivePreview(API + data.url);
+                }
+            } catch (err) {
+                showToast('Network error: ' + err.message, 'error');
+            } finally {
+                useLogoBtn.disabled = false;
+                useLogoBtn.innerHTML = '✅ Use This Logo';
+            }
+        });
+
+        /* ─────────────────────────────────────────────────────────
+           Manual file upload
+        ───────────────────────────────────────────────────────── */
+        const logoFileInput = document.getElementById('logoFile');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileDropZone = document.getElementById('fileDropZone');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+        logoFileInput.addEventListener('change', function () {
+            if (this.files && this.files.length > 0) {
+                uploadBtn.disabled = false;
+                fileNameDisplay.textContent = '📎 ' + this.files[0].name;
+                fileNameDisplay.classList.add('visible');
+            } else {
+                uploadBtn.disabled = true;
+                fileNameDisplay.classList.remove('visible');
+            }
+        });
+
+        // Drag & drop visual feedback
+        fileDropZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            fileDropZone.classList.add('dragover');
+        });
+        fileDropZone.addEventListener('dragleave', () => {
+            fileDropZone.classList.remove('dragover');
+        });
+        fileDropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            fileDropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                logoFileInput.files = e.dataTransfer.files;
+                logoFileInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        uploadBtn.addEventListener('click', async () => {
+            const file = logoFileInput.files && logoFileInput.files[0];
+            if (!file) return;
+
+            if (!file.type.match(/^image\/(png|jpeg|jpg)$/)) {
+                showToast('Please choose a PNG or JPEG image.', 'error');
+                return;
+            }
+
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<span class="spinner-sm"></span> Uploading…';
+
+            try {
+                const form = new FormData();
+                form.append('file', file);
+                const r = await fetch(`${API}/api/settings/logo`, { method: 'POST', body: form });
+                const data = await r.json();
+
+                if (!r.ok) {
+                    showToast(data.detail || 'Upload failed.', 'error');
+                } else {
+                    showToast('Logo uploaded and set as active!', 'success');
+                    logoFileInput.value = '';
+                    fileNameDisplay.classList.remove('visible');
+                    uploadBtn.disabled = true;
+                    // Clear predefined selection since we uploaded something custom
+                    selectedLogoId = null;
+                    thumb.classList.remove('visible');
+                    placeholder.style.display = 'inline';
+                    selectedName.style.display = 'none';
+                    useLogoBtn.disabled = true;
+                    menu.querySelectorAll('.logo-dropdown-item').forEach(i => i.classList.remove('selected'));
+
+                    await loadLogoStatus();
+                }
+            } catch (err) {
+                showToast('Upload failed: ' + err.message, 'error');
+            } finally {
+                uploadBtn.disabled = true;
+                uploadBtn.innerHTML = '⬆️ Upload Logo';
+            }
+        });
+
+        /* ─────────────────────────────────────────────────────────
+           Init
+        ───────────────────────────────────────────────────────── */
+        loadLogoStatus();
+        loadPredefinedLogos();
+        loadEmailTemplate();
+    </script>
+
+    <script>
+        /* ═══════════════════════════════════════════════════════════
+           Email Template section
+        ═══════════════════════════════════════════════════════════ */
+        const subjectEl = document.getElementById('emailSubjectInput');
+        const bodyEl = document.getElementById('emailBodyTextarea');
+        const modeSwitch = document.getElementById('modeSwitch');
+        const toolbar = document.getElementById('editorToolbar');
+        const modeLabelText = document.getElementById('modeLabelText');
+
+        let activeInput = subjectEl;
+        let currentMode = 'html'; // default
+
+        // Track focus
+        subjectEl.addEventListener('focus', () => activeInput = subjectEl);
+        bodyEl.addEventListener('focus', () => activeInput = bodyEl);
+
+        /* ── Toolbar formatting ──────────────────────────────────── */
+        toolbar.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tag = btn.dataset.tag;
+                const start = bodyEl.selectionStart;
+                const end = bodyEl.selectionEnd;
+                const selected = bodyEl.value.substring(start, end);
+
+                let wrapped = '';
+                if (tag === 'a') {
+                    const url = prompt('Enter URL:', 'https://');
+                    if (!url) return;
+                    wrapped = `<a href="${url}">${selected || 'Link Text'}</a>`;
+                } else {
+                    wrapped = `<${tag}>${selected}</${tag}>`;
+                }
+
+                bodyEl.value = bodyEl.value.slice(0, start) + wrapped + bodyEl.value.slice(end);
+                bodyEl.focus();
+                bodyEl.setSelectionRange(start + wrapped.length, start + wrapped.length);
+            });
+        });
+
+        /* ── Mode Switching ──────────────────────────────────────── */
+        modeSwitch.addEventListener('change', () => {
+            currentMode = modeSwitch.checked ? 'plain' : 'html';
+            updateUIForMode();
+        });
+
+        function updateUIForMode() {
+            if (currentMode === 'plain') {
+                toolbar.style.opacity = '0.4';
+                toolbar.style.pointerEvents = 'none';
+                modeLabelText.textContent = 'HTML Editor';
+                bodyEl.placeholder = 'Type your message here... no HTML needed. We will wrap it in a professional layout.';
+            } else {
+                toolbar.style.opacity = '1';
+                toolbar.style.pointerEvents = 'auto';
+                modeLabelText.textContent = 'HTML Editor';
+                bodyEl.placeholder = 'Enter HTML email body...';
+            }
+        }
+
+        /* ── Chip insertion ──────────────────────────────────────── */
+        document.getElementById('chipBar').querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const token = chip.dataset.token;
+                const el = activeInput;
+                const start = el.selectionStart ?? el.value.length;
+                const end = el.selectionEnd ?? el.value.length;
+                el.value = el.value.slice(0, start) + token + el.value.slice(end);
+                el.focus();
+                el.setSelectionRange(start + token.length, start + token.length);
+            });
+        });
+
+        /* ── Load template from API ──────────────────────────────── */
+        async function loadEmailTemplate() {
+            try {
+                const r = await fetch(`${API}/api/settings/email-template`);
+                const data = await r.json();
+                subjectEl.value = data.subject || '';
+                bodyEl.value = data.body || '';
+                currentMode = data.mode || 'html';
+
+                modeSwitch.checked = (currentMode === 'plain');
+                updateUIForMode();
+            } catch {
+                showToast('Could not load email template.', 'error');
+            }
+        }
+
+        /* ── Save template ───────────────────────────────────────── */
+        const saveTemplateBtn = document.getElementById('saveTemplateBtn');
+        saveTemplateBtn.addEventListener('click', async () => {
+            if (!subjectEl.value.trim()) {
+                showToast('Subject cannot be empty.', 'error');
+                return;
+            }
+            saveTemplateBtn.disabled = true;
+            saveTemplateBtn.innerHTML = '<span class="spinner-sm"></span> Saving…';
+            try {
+                const r = await fetch(`${API}/api/settings/email-template`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        subject: subjectEl.value,
+                        body: bodyEl.value,
+                        mode: currentMode
+                    }),
+                });
+                const data = await r.json();
+                if (!r.ok) throw new Error(data.detail || 'Save failed');
+                showToast('✅ Email template saved!', 'success');
+            } catch (err) {
+                showToast('Error: ' + err.message, 'error');
+            } finally {
+                saveTemplateBtn.disabled = false;
+                saveTemplateBtn.innerHTML = '💾 Save Template';
+            }
+        });
+
+        /* ── Reset to default ────────────────────────────────────── */
+        document.getElementById('resetTemplateBtn').addEventListener('click', async () => {
+            if (!confirm('Reset to the built-in default template? This will overwrite your current template.')) return;
+            await loadEmailTemplate();
+            showToast('Template reset to default (not yet saved).', 'info');
+        });
+
+        /* ── Preview modal ───────────────────────────────────────── */
+        const previewModal = document.getElementById('previewModal');
+        const previewSubjectLine = document.getElementById('previewSubjectLine');
+        const previewIframe = document.getElementById('previewIframe');
+
+        const SAMPLE = {
+            client_name: 'John Doe',
+            proposal_number: 'PROP-20240305-120000',
+            project_name: 'My Test Project',
+            logo_block: '',
+        };
+
+        function applyPlaceholders(text) {
+            let out = text;
+            for (const [k, v] of Object.entries(SAMPLE)) {
+                out = out.replaceAll(`{{${k}}}`, v);
+            }
+            return out;
+        }
+
+        document.getElementById('previewTemplateBtn').addEventListener('click', () => {
+            const subject = applyPlaceholders(subjectEl.value || 'No subject');
+            let body = applyPlaceholders(bodyEl.value || 'No body content.');
+
+            // If in plain text mode, apply professional wrapping for preview
+            if (currentMode === 'plain') {
+                const safeMsg = body.replace(/\n/g, '<br>');
+                body = `
+                <html>
+                  <body style="margin:0;padding:0;background:#f8f9fc;font-family:'Segoe UI',Arial,sans-serif;">
+                    <div style="max-width:600px;margin:20px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,0.05);border:1px solid #eef0f5;">
+                      <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:40px;text-align:left;">
+                        <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">Proposal Update</h1>
+                      </div>
+                      <div style="padding:40px;font-size:16px;color:#1e293b;line-height:1.6;">
+                        ${safeMsg}
+                      </div>
+                      <div style="background:#f1f5f9;padding:20px 40px;text-align:center;font-size:12px;color:#94a3b8;">
+                        This is an automated message from the Proposal Automation System.
+                      </div>
+                    </div>
+                  </body>
+                </html>`;
+            }
+
+            previewSubjectLine.textContent = subject;
+            const doc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+            doc.open();
+            doc.write(body);
+            doc.close();
+            previewModal.classList.add('open');
+        });
+
+        document.getElementById('closePreviewModal').addEventListener('click', () => {
+            previewModal.classList.remove('open');
+        });
+        previewModal.addEventListener('click', e => {
+            if (e.target === previewModal) previewModal.classList.remove('open');
+        });
+
+        /* ── Test Email modal ────────────────────────────────────── */
+        const testModal = document.getElementById('testEmailModal');
+        const testAddrEl = document.getElementById('testEmailAddress');
+        const sendTestBtn = document.getElementById('sendTestBtn');
+
+        document.getElementById('openTestEmailBtn').addEventListener('click', () => {
+            testModal.classList.add('open');
+        });
+        document.getElementById('closeTestModal').addEventListener('click', () => {
+            testModal.classList.remove('open');
+        });
+        document.getElementById('cancelTestBtn').addEventListener('click', () => {
+            testModal.classList.remove('open');
+        });
+        testModal.addEventListener('click', e => {
+            if (e.target === testModal) testModal.classList.remove('open');
+        });
+
+        sendTestBtn.addEventListener('click', async () => {
+            const addr = testAddrEl.value.trim();
+            if (!addr) { showToast('Please enter a recipient email.', 'error'); return; }
+
+            sendTestBtn.disabled = true;
+            sendTestBtn.innerHTML = '<span class="spinner-sm"></span> Sending…';
+
+            try {
+                const r = await fetch(`${API}/api/settings/email-template/test`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        to_email: addr,
+                        subject: subjectEl.value || null,
+                        body: bodyEl.value || null,
+                    }),
+                });
+                const data = await r.json();
+                if (!r.ok) throw new Error(data.detail || 'Send failed');
+                showToast(`✅ Test email sent to ${addr}!`, 'success');
+                testModal.classList.remove('open');
+            } catch (err) {
+                showToast('Error: ' + err.message, 'error');
+            } finally {
+                sendTestBtn.disabled = false;
+                sendTestBtn.innerHTML = '🚀 Send Test Email';
+            }
+        });
+    </script>
+</body>
+
+</html>

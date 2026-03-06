@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Proposals — Proposal Automation System</title>
+    <meta name="description" content="Manage, view, edit and delete all generated proposals in one place.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ── Reset & base ─────────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #f5f6fa;
+            --surface: #ffffff;
+            --surface2: #f8f9fc;
+            --border: #e8eaf0;
+            --accent: #6366f1;
+            --accent2: #4f46e5;
+            --accent-glow: rgba(99, 102, 241, 0.13);
+            --green: #16a34a;
+            --red: #dc2626;
+            --amber: #d97706;
+            --blue: #2563eb;
+            --text: #1e2433;
+            --text-muted: #9ca3af;
+            --badge-draft: rgba(217, 119, 6, 0.12);
+            --badge-draft-text: #d97706;
+            --radius: 14px;
+            --radius-sm: 10px;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.07), 0 8px 32px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        /* ── Gradient header bar ──────────────────────────────── */
+        .topbar {
+            background: var(--surface);
+            padding: 0 32px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-brand {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .topbar-brand span {
+            font-size: 1.5rem;
+        }
+
+        .topbar-nav {
+            display: flex;
+            gap: 6px;
+        }
+
+        .topbar-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+
+        .topbar-nav a:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .topbar-nav a.active {
+            background: var(--accent-glow);
+            color: var(--accent);
+        }
+
+        /* ── Page content ─────────────────────────────────────── */
+        .page {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .page-title h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+
+        .page-title p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .new-proposal-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f59e0b;
+            color: #fff;
+            border: none;
+            padding: 11px 22px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .new-proposal-btn:hover {
+            transform: translateY(-2px);
+            background: #d97706;
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.45);
+        }
+
+        /* ── Stats row ────────────────────────────────────────── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .stat-value.money {
+            color: var(--green);
+        }
+
+        /* ── Table card ───────────────────────────────────────── */
+        .table-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .table-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 8px 16px;
+            flex: 1;
+            max-width: 340px;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--accent);
+        }
+
+        .search-box svg {
+            flex-shrink: 0;
+            color: var(--text-muted);
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 0.875rem;
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .table-count {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* ── Table ────────────────────────────────────────────── */
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        thead tr {
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            padding: 14px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s;
+        }
+
+        th:hover {
+            color: var(--text);
+        }
+
+        th.sorted {
+            color: var(--accent);
+        }
+
+        th .sort-icon {
+            margin-left: 5px;
+            display: inline-block;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: var(--surface2);
+        }
+
+        td {
+            padding: 14px 18px;
+            vertical-align: middle;
+        }
+
+        .prop-number {
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 0.3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+        }
+
+        .client-name {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .project-name {
+            color: var(--text-muted);
+            font-size: 0.83rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.73rem;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            text-transform: capitalize;
+        }
+
+        .badge-draft {
+            background: var(--badge-draft);
+            color: var(--badge-draft-text);
+        }
+
+        .badge-approved {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .badge-sent {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .badge-rejected {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .amount {
+            font-weight: 600;
+            color: var(--green);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .date-col {
+            color: var(--text-muted);
+            font-size: 0.83rem;
+        }
+
+        /* ── Action buttons ───────────────────────────────────── */
+        .actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.18s;
+            font-size: 0.9rem;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-action.view:hover {
+            background: #dbeafe;
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        .btn-action.edit:hover {
+            background: #fef3c7;
+            border-color: #d97706;
+            color: #d97706;
+        }
+
+        .btn-action.delete:hover {
+            background: #fee2e2;
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+
+        .btn-action.email:hover {
+            background: #dcfce7;
+            border-color: #16a34a;
+            color: #16a34a;
+        }
+
+        /* tooltip */
+        .btn-action::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text);
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+            border: 1px solid var(--border);
+        }
+
+        .btn-action:hover::after {
+            opacity: 1;
+        }
+
+        .download-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-dl {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-dl.pdf:hover {
+            background: #fee2e2;
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+
+        .btn-dl.xlsx:hover {
+            background: #dcfce7;
+            border-color: #16a34a;
+            color: #16a34a;
+        }
+
+        /* ── Empty / Loading state ────────────────────────────── */
+        .empty-state {
+            padding: 80px 24px;
+            text-align: center;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+
+        .empty-state h3 {
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--text-muted);
+            font-size: 0.87rem;
+        }
+
+        .loader-row td {
+            padding: 60px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── Modals ───────────────────────────────────────────── */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 36, 51, 0.45);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.25s ease;
+        }
+
+        .modal-sm {
+            max-width: 440px;
+        }
+
+        .modal-lg {
+            max-width: 780px;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(24px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 22px 28px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-close:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .modal-body {
+            padding: 24px 28px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 16px 28px 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ── Detail modal ─────────────────────────────────────── */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .detail-field label {
+            font-size: 0.73rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .detail-field .val {
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.92rem;
+        }
+
+        .detail-field .val.mono {
+            font-family: 'Courier New', monospace;
+            color: var(--accent);
+            font-size: 0.85rem;
+        }
+
+        .detail-field .val.money {
+            color: var(--green);
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .section-divider {
+            margin: 20px 0 16px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .breakdown-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.865rem;
+        }
+
+        .breakdown-table th,
+        .breakdown-table td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .breakdown-table thead tr {
+            background: var(--surface2);
+        }
+
+        .breakdown-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .breakdown-table td {
+            color: var(--text);
+        }
+
+        .breakdown-table td.money {
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        .breakdown-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .breakdown-table tfoot tr {
+            background: var(--accent-glow);
+            font-weight: 700;
+        }
+
+        .breakdown-table tfoot td {
+            border-top: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        /* ── Edit form ────────────────────────────────────────── */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 7px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 11px 14px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .form-control option {
+            background: var(--surface2);
+        }
+
+        /* ── Delete modal ─────────────────────────────────────── */
+        .delete-icon {
+            width: 56px;
+            height: 56px;
+            background: #fee2e2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 16px;
+            border: 1.5px solid rgba(220, 38, 38, 0.2);
+        }
+
+        .delete-warning {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .delete-warning p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        .delete-warning strong {
+            color: var(--text);
+        }
+
+        /* ── Buttons ──────────────────────────────────────────── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-ghost {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--text-muted);
+            color: var(--text);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent2);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--red);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.25);
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ── Toast notification ───────────────────────────────── */
+        #toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 500;
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transform: translateY(12px);
+            transition: all 0.3s;
+            pointer-events: none;
+            max-width: 320px;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #toast.success {
+            background: #16a34a;
+            color: #fff;
+        }
+
+        #toast.error {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        #toast.info {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* ── Responsive ───────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .topbar {
+                padding: 0 16px;
+            }
+
+            .topbar-nav a {
+                display: none;
+            }
+
+            .topbar-nav a:last-child {
+                display: flex;
+            }
+
+            .page {
+                padding: 24px 12px 60px;
+            }
+
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-row {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            td.hide-sm,
+            th.hide-sm {
+                display: none;
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--surface2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── Top Navigation ──────────────────────────────────────── -->
+    <header class="topbar">
+        <a href="/" class="topbar-brand">
+            <div
+                style="width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">
+                🚀</div> Proposal Automation System
+        </a>
+        <nav class="topbar-nav">
+            <a href="/">New Proposal</a>
+            <a href="/pricing-config">⚙️ Pricing</a>
+            <a href="/chat">🤖 AI Assistant</a>
+            <a href="/settings">🖼️ Settings</a>
+            <a href="/proposals" class="active">📋 All Proposals</a>
+        </nav>
+    </header>
+
+    <!-- ── Main Page ───────────────────────────────────────────── -->
+    <main class="page">
+
+        <div class="page-header">
+            <div class="page-title">
+                <h1>All Proposals</h1>
+                <p>View, manage, edit and download every generated proposal</p>
+            </div>
+            <a href="/" class="new-proposal-btn">＋ New Proposal</a>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-label">Total Proposals</div>
+                <div class="stat-value" id="statTotal">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Value</div>
+                <div class="stat-value money" id="statValue">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Latest</div>
+                <div class="stat-value" id="statLatest" style="font-size:1.1rem;margin-top:4px;">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg. Proposal Size</div>
+                <div class="stat-value money" id="statAvg">—</div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+            <div class="table-toolbar">
+                <div class="search-box">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Search by proposal #, client, project…"
+                        oninput="filterTable()">
+                </div>
+                <div class="table-count" id="tableCount"></div>
+            </div>
+            <div class="table-wrap">
+                <table id="proposalsTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('proposal_number')" id="th-proposal_number"># Proposal No. <span
+                                    class="sort-icon">↕</span></th>
+                            <th onclick="sortTable('client_name')" id="th-client_name" class="hide-sm">Client <span
+                                    class="sort-icon">↕</span></th>
+                            <th onclick="sortTable('project_name')" id="th-project_name" class="hide-sm">Project <span
+                                    class="sort-icon">↕</span></th>
+                            <th onclick="sortTable('created_at')" id="th-created_at">Created <span class="sort-icon">↕
+                                </span></th>
+                            <th onclick="sortTable('total_price')" id="th-total_price">Amount <span
+                                    class="sort-icon">↕</span></th>
+                            <th onclick="sortTable('status')" id="th-status" class="hide-sm">Status <span
+                                    class="sort-icon">↕</span></th>
+                            <th style="min-width:220px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr class="loader-row">
+                            <td colspan="7">
+                                <div class="spinner"></div>
+                                <p>Loading proposals…</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- ══════════════════════════════════════════════════════════
+         VIEW DETAILS MODAL
+    ══════════════════════════════════════════════════════════════ -->
+    <div class="modal-backdrop" id="viewModal" onclick="closeOnBackdrop(event, 'viewModal')">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <span class="modal-title" id="viewTitle">Proposal Details</span>
+                <button class="modal-close" onclick="closeModal('viewModal')">✕</button>
+            </div>
+            <div class="modal-body" id="viewBody">
+                <!-- Injected by JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('viewModal')">Close</button>
+                <button id="viewEmailBtn" class="btn" style="background:var(--accent);color:#fff;"
+                    onclick="sendEmailFromModal()">✉️ Send Email</button>
+                <a id="viewPdfBtn" href="#" target="_blank" class="btn btn-danger">📄 PDF</a>
+                <a id="viewXlsxBtn" href="#" target="_blank" class="btn"
+                    style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;">📊 Excel</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT: navigates to Home Page in edit mode (see index.html) -->
+
+    <!-- ══════════════════════════════════════════════════════════
+         DELETE CONFIRM MODAL
+    ══════════════════════════════════════════════════════════════ -->
+    <div class="modal-backdrop" id="deleteModal" onclick="closeOnBackdrop(event, 'deleteModal')">
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <span class="modal-title">🗑️ Delete Proposal</span>
+                <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-icon">🗑️</div>
+                <div class="delete-warning">
+                    <p>Are you sure you want to permanently delete proposal</p>
+                    <p style="margin-top:8px;"><strong id="deletePropNum"></strong>?</p>
+                    <p style="margin-top:12px; color: var(--red);">This action <strong style="color:var(--red)">cannot
+                            be undone</strong>. All pricing data and complexity breakdowns will be removed.</p>
+                </div>
+                <input type="hidden" id="deleteId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('deleteModal')">Cancel</button>
+                <button class="btn btn-danger" id="deleteConfirmBtn" onclick="confirmDelete()">🗑️ Delete
+                    Permanently</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast"></div>
+
+    <!-- ── JavaScript ───────────────────────────────────────────── -->
+    <script>
+        const API_URL = window.location.origin;
+
+        /* ── State ────────────────────────────────────────────── */
+        let allProposals = [];
+        let filtered = [];
+        let sortKey = 'created_at';
+        let sortDir = -1; // -1 = desc
+
+        /* ── Init ─────────────────────────────────────────────── */
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProposals();
+            // Show toast if returning from edit flow with ?updated=1
+            const _p = new URLSearchParams(window.location.search);
+            if (_p.has('updated')) {
+                setTimeout(() => showToast('✅ Proposal updated & pricing recalculated!', 'success'), 600);
+                history.replaceState({}, '', window.location.pathname);
+            }
+        });
+
+        /* ── Load proposals ───────────────────────────────────── */
+        async function loadProposals() {
+            setLoadingState(true);
+            try {
+                const res = await fetch(`${API_URL}/api/proposals`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                allProposals = await res.json();
+                renderStats(allProposals);
+                filtered = [...allProposals];
+                applySort();
+                renderTable(filtered);
+            } catch (err) {
+                showErrorState(err.message);
+            }
+        }
+
+        /* ── Stats ────────────────────────────────────────────── */
+        function renderStats(data) {
+            const total = data.length;
+            const totalVal = data.reduce((s, p) => s + parseFloat(p.total_price || 0), 0);
+            const avg = total > 0 ? totalVal / total : 0;
+            const latest = total > 0
+                ? new Date(data[0].created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+                : '—';
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statValue').textContent = `$${totalVal.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+            document.getElementById('statLatest').textContent = latest;
+            document.getElementById('statAvg').textContent = total > 0
+                ? `$${avg.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+                : '—';
+        }
+
+        /* ── Render table ─────────────────────────────────────── */
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            document.getElementById('tableCount').textContent =
+                `${data.length} proposal${data.length !== 1 ? 's' : ''}`;
+
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="7">
+                        <div class="empty-state">
+                            <div class="empty-icon">📋</div>
+                            <h3>No proposals found</h3>
+                            <p>Try adjusting your search or <a href="/" style="color:var(--accent);">create a new proposal</a></p>
+                        </div>
+                    </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(p => {
+                const date = new Date(p.created_at).toLocaleDateString('en-US', {
+                    day: '2-digit', month: 'short', year: 'numeric'
+                });
+                const time = new Date(p.created_at).toLocaleTimeString('en-US', {
+                    hour: '2-digit', minute: '2-digit', hour12: true
+                });
+                const amount = parseFloat(p.total_price || 0);
+                const status = (p.status || 'draft').toLowerCase();
+                return `
+                <tr>
+                    <td><span class="prop-number">${esc(p.proposal_number)}</span></td>
+                    <td class="hide-sm">
+                        <div class="client-name">${esc(p.client_name || '—')}</div>
+                        <div style="font-size:0.78rem;color:var(--text-muted);">${esc(p.client_email || '')}</div>
+                    </td>
+                    <td class="project-name hide-sm">${esc(p.project_name || '—')}</td>
+                    <td class="date-col">
+                        <div>${date}</div>
+                        <div style="font-size:0.75rem;">${time}</div>
+                    </td>
+                    <td><span class="amount">$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></td>
+                    <td class="hide-sm"><span class="badge badge-${status}">${status}</span></td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn-action view" onclick="openView(${p.id})" data-tip="View Details">👁</button>
+                            <button class="btn-action edit" onclick="openEdit(${p.id})" data-tip="Edit">✏️</button>
+                            <button class="btn-action email" onclick="sendEmail(${p.id})" data-tip="Send Email">✉️</button>
+                            <div class="download-group">
+                                <button class="btn-dl pdf" onclick="downloadFile('${API_URL}/api/export/proposal/${p.id}/pdf', 'proposal_${esc(p.proposal_number)}.pdf')">📄 PDF</button>
+                                <button class="btn-dl xlsx" onclick="downloadFile('${API_URL}/api/export/proposal/${p.id}/excel', 'proposal_${esc(p.proposal_number)}.xlsx')">📊 XLSX</button>
+                            </div>
+                            <button class="btn-action delete" onclick="openDelete(${p.id}, '${esc(p.proposal_number)}')" data-tip="Delete">🗑</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        /* ── Loading / error states ───────────────────────────── */
+        function setLoadingState(on) {
+            if (on) {
+                document.getElementById('tableBody').innerHTML = `
+                    <tr class="loader-row"><td colspan="7">
+                        <div class="spinner"></div>
+                        <p>Loading proposals…</p>
+                    </td></tr>`;
+            }
+        }
+
+        function showErrorState(msg) {
+            document.getElementById('tableBody').innerHTML = `
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <h3>Failed to load proposals</h3>
+                        <p>${esc(msg)}</p>
+                        <button class="btn btn-primary" style="margin-top:16px;" onclick="loadProposals()">↺ Retry</button>
+                    </div>
+                </td></tr>`;
+        }
+
+        /* ── Filter ───────────────────────────────────────────── */
+        function filterTable() {
+            const q = document.getElementById('searchInput').value.trim().toLowerCase();
+            filtered = q
+                ? allProposals.filter(p =>
+                    (p.proposal_number || '').toLowerCase().includes(q) ||
+                    (p.client_name || '').toLowerCase().includes(q) ||
+                    (p.project_name || '').toLowerCase().includes(q) ||
+                    (p.client_email || '').toLowerCase().includes(q)
+                )
+                : [...allProposals];
+            applySort();
+            renderTable(filtered);
+        }
+
+        /* ── Sorting ──────────────────────────────────────────── */
+        function sortTable(key) {
+            if (sortKey === key) {
+                sortDir *= -1;
+            } else {
+                sortKey = key;
+                sortDir = key === 'created_at' ? -1 : 1;
+            }
+            // Update header icons
+            document.querySelectorAll('th').forEach(th => th.classList.remove('sorted'));
+            const th = document.getElementById(`th-${key}`);
+            if (th) th.classList.add('sorted');
+            applySort();
+            renderTable(filtered);
+        }
+
+        function applySort() {
+            filtered.sort((a, b) => {
+                let av = a[sortKey], bv = b[sortKey];
+                if (sortKey === 'total_price') { av = parseFloat(av || 0); bv = parseFloat(bv || 0); }
+                else if (sortKey === 'created_at') { av = new Date(av); bv = new Date(bv); }
+                else { av = (av || '').toString().toLowerCase(); bv = (bv || '').toString().toLowerCase(); }
+                if (av < bv) return -1 * sortDir;
+                if (av > bv) return 1 * sortDir;
+                return 0;
+            });
+        }
+
+        /* ── VIEW MODAL ───────────────────────────────────────── */
+        async function openView(id) {
+            currentViewId = id;
+            document.getElementById('viewTitle').textContent = 'Loading…';
+            document.getElementById('viewBody').innerHTML = `<div style="text-align:center;padding:40px;"><div class="spinner"></div></div>`;
+            openModal('viewModal');
+
+            try {
+                const res = await fetch(`${API_URL}/api/proposals/${id}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const p = await res.json();
+
+                document.getElementById('viewTitle').textContent = `Proposal — ${p.proposal_number || id}`;
+                const pb = p.pricing_breakdown || {};
+
+                // Helper
+                const money = v => `$${parseFloat(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+                let breakdown = '';
+                const comps = p.pricing_components || [];
+                const compHtml = comps.map(c => `
+                    <tr>
+                        <td>${esc(c.component_name || c.component_type)}</td>
+                        <td>${parseFloat(c.quantity || 1).toLocaleString()}</td>
+                        <td class="money">${money(c.unit_price)}</td>
+                        <td class="money">${money(c.total_price)}</td>
+                    </tr>`).join('');
+
+                let birtSection = '';
+                if (pb.birt_complexity_breakdown) {
+                    const rows = Object.entries(pb.birt_complexity_breakdown)
+                        .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+                        .map(([sc, bd]) => `
+                            <tr>
+                                <td>Level ${sc}</td>
+                                <td>${bd.num_reports}</td>
+                                <td class="money">${money(bd.price_per_report)}</td>
+                                <td class="money">${money(bd.total_price)}</td>
+                            </tr>`).join('');
+
+                    birtSection = `
+                        <div class="section-divider">BIRT Complexity Breakdown</div>
+                        <table class="breakdown-table">
+                            <thead><tr><th>Complexity</th><th>Reports</th><th>Price/Report</th><th>Total</th></tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>`;
+                }
+
+                const status = (p.status || 'draft').toLowerCase();
+
+                document.getElementById('viewBody').innerHTML = `
+                    <div class="detail-grid">
+                        <div class="detail-field">
+                            <label>Proposal Number</label>
+                            <div class="val mono">${esc(p.proposal_number)}</div>
+                        </div>
+                        <div class="detail-field">
+                            <label>Status</label>
+                            <span class="badge badge-${status}">${status}</span>
+                        </div>
+                        <div class="detail-field">
+                            <label>Client Name</label>
+                            <div class="val">${esc(p.client_name || '—')}</div>
+                        </div>
+                        <div class="detail-field">
+                            <label>Client Email</label>
+                            <div class="val">${esc(p.client_email || '—')}</div>
+                        </div>
+                        <div class="detail-field">
+                            <label>Project Name</label>
+                            <div class="val">${esc(p.project_name || '—')}</div>
+                        </div>
+                        <div class="detail-field">
+                            <label>Total Amount</label>
+                            <div class="val money">${money(p.total_price)}</div>
+                        </div>
+                        <div class="detail-field">
+                            <label>Created At</label>
+                            <div class="val">${new Date(p.created_at).toLocaleString()}</div>
+                        </div>
+                        <div class="detail-field">
+                            <label>Proposal ID</label>
+                            <div class="val">#${p.id}</div>
+                        </div>
+                    </div>
+
+                    <div class="section-divider">Pricing Breakdown</div>
+                    <table class="breakdown-table">
+                        <thead><tr><th>Component</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
+                        <tbody>${compHtml || '<tr><td colspan="4" style="color:var(--text-muted);text-align:center;">No components found</td></tr>'}</tbody>
+                        <tfoot>
+                            <tr><td colspan="3"><strong>Grand Total</strong></td><td class="money">${money(p.total_price)}</td></tr>
+                        </tfoot>
+                    </table>
+
+                    ${birtSection}
+                `;
+
+                document.getElementById('viewPdfBtn').href = `${API_URL}/api/export/proposal/${id}/pdf`;
+                document.getElementById('viewXlsxBtn').href = `${API_URL}/api/export/proposal/${id}/excel`;
+
+            } catch (err) {
+                document.getElementById('viewBody').innerHTML = `<p style="color:var(--red);text-align:center;">Failed to load: ${esc(err.message)}</p>`;
+            }
+        }
+
+        /* ── EDIT: navigate to home page in edit mode ─────────── */
+        function openEdit(id) {
+            window.location.href = `/?edit=${id}`;
+        }
+
+        /* ── DELETE MODAL ─────────────────────────────────────── */
+        function openDelete(id, propNum) {
+            document.getElementById('deleteId').value = id;
+            document.getElementById('deletePropNum').textContent = propNum;
+            openModal('deleteModal');
+        }
+
+        async function confirmDelete() {
+            const id = document.getElementById('deleteId').value;
+            const btn = document.getElementById('deleteConfirmBtn');
+            btn.disabled = true;
+            btn.textContent = 'Deleting…';
+
+            try {
+                const res = await fetch(`${API_URL}/api/proposals/${id}`, {
+                    method: 'DELETE',
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || `HTTP ${res.status}`);
+                }
+                closeModal('deleteModal');
+                showToast('Proposal deleted successfully.', 'success');
+                await loadProposals();
+            } catch (err) {
+                showToast('Error: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🗑️ Delete Permanently';
+            }
+        }
+
+        /* ── Modal helpers ────────────────────────────────────── */
+        function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+        function closeOnBackdrop(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+        /* ── Toast ────────────────────────────────────────────── */
+        let _toastTimer;
+        function showToast(msg, type = 'info') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `show ${type}`;
+            clearTimeout(_toastTimer);
+            _toastTimer = setTimeout(() => { t.className = ''; }, 3400);
+        }
+
+        /* ── Send Email ───────────────────────────────────────── */
+        async function sendEmail(id) {
+            try {
+                showToast('✉️ Sending email to client…', 'info');
+                const res = await fetch(`${API_URL}/api/proposals/${id}/send-email`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+
+                showToast('✅ Email sent successfully!', 'success');
+                // Reload to show 'sent' status
+                loadProposals();
+            } catch (err) {
+                showToast('❌ Failed to send email: ' + err.message, 'error');
+            }
+        }
+
+        let currentViewId = null;
+        async function sendEmailFromModal() {
+            if (!currentViewId) return;
+            const btn = document.getElementById('viewEmailBtn');
+            const oldText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = 'Sending…';
+
+            await sendEmail(currentViewId);
+
+            btn.disabled = false;
+            btn.innerHTML = oldText;
+            // Optionally close modal or update badge in modal
+            openView(currentViewId);
+        }
+
+        /* ── Download via fetch (avoids browser Drive picker) ─── */
+        async function downloadFile(url, filename) {
+            try {
+                showToast('⏳ Preparing download…', 'info');
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`Server error ${res.status}`);
+                const blob = await res.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = objectUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(objectUrl);
+                showToast('✅ Download started!', 'success');
+            } catch (err) {
+                showToast('❌ Download failed: ' + err.message, 'error');
+            }
+        }
+
+        /* ── Utility: escape HTML ─────────────────────────────── */
+        function esc(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+    </script>
+</body>
+
+</html>

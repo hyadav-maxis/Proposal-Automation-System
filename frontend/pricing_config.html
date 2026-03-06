@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing Configuration - Proposal Automation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #f5f6fa;
+            --surface: #ffffff;
+            --surface2: #f8f9fc;
+            --border: #e8eaf0;
+            --accent: #6366f1;
+            --accent2: #4f46e5;
+            --accent-glow: rgba(99, 102, 241, 0.13);
+            --green: #16a34a;
+            --green-bg: #dcfce7;
+            --red: #dc2626;
+            --red-bg: #fee2e2;
+            --amber: #d97706;
+            --amber-bg: #fef3c7;
+            --text: #1e2433;
+            --text-secondary: #4b5563;
+            --text-muted: #9ca3af;
+            --radius: 14px;
+            --radius-sm: 10px;
+            --radius-xs: 7px;
+            --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06), 0 2px 12px rgba(0, 0, 0, 0.04);
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.07), 0 8px 32px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .topbar {
+            background: var(--surface);
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .topbar-brand {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            letter-spacing: -0.3px;
+        }
+
+        .topbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .topbar-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 7px 14px;
+            border-radius: 8px;
+            transition: all 0.18s;
+            position: relative;
+        }
+
+        .topbar-nav a:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .topbar-nav a.active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .topbar-nav a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 14px;
+            right: 14px;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 2px 2px 0 0;
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 36px 24px 80px;
+        }
+
+        .page-header {
+            margin-bottom: 28px;
+        }
+
+        .page-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .message {
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: var(--green-bg);
+            color: var(--green);
+            border: 1px solid rgba(22, 163, 74, 0.25);
+        }
+
+        .message.error {
+            background: var(--red-bg);
+            color: var(--red);
+            border: 1px solid rgba(220, 38, 38, 0.25);
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .pricing-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .pricing-section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface2);
+        }
+
+        .pricing-section-header::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        .pricing-section h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+        }
+
+        .pricing-section>p,
+        .pricing-section-desc {
+            font-size: 0.83rem;
+            color: var(--text-muted);
+            padding: 0 24px;
+            margin-top: -4px;
+        }
+
+        .pricing-section-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 7px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px 13px;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 9px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        button {
+            background: var(--accent);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 9px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            margin-top: 8px;
+            transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
+            box-shadow: 0 2px 8px var(--accent-glow);
+        }
+
+        button:hover {
+            background: var(--accent2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .save-all-btn {
+            background: var(--green);
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            margin-top: 28px;
+            border-radius: var(--radius-sm);
+            box-shadow: 0 4px 14px rgba(22, 163, 74, 0.25);
+        }
+
+        .save-all-btn:hover {
+            background: #15803d;
+        }
+
+        .complexity-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .complexity-item {
+            padding: 14px;
+            background: var(--surface2);
+            border-radius: 9px;
+            border: 1.5px solid var(--border);
+        }
+
+        .complexity-item label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .tier-section {
+            margin-top: 14px;
+            padding: 16px;
+            background: var(--surface2);
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+        }
+
+        .tier-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 12px;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .add-tier-btn {
+            background: var(--blue, #2563eb);
+            color: #fff;
+        }
+
+        .add-tier-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .remove-tier-btn {
+            background: var(--red-bg);
+            color: var(--red);
+            border: 1.5px solid rgba(220, 38, 38, 0.25);
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 7px;
+            box-shadow: none;
+            margin-top: 0;
+            align-self: end;
+        }
+
+        .remove-tier-btn:hover {
+            background: var(--red);
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <a href="/" class="topbar-brand">
+            <div
+                style="width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">
+                🚀</div>
+            Proposal Automation System
+        </a>
+        <nav class="topbar-nav">
+            <a href="/">New Proposal</a>
+            <a href="/pricing-config" class="active">⚙️ Pricing</a>
+            <a href="/chat">🤖 AI Assistant</a>
+            <a href="/settings">⚙️ Settings</a>
+            <a href="/proposals">📋 All Proposals</a>
+        </nav>
+    </header>
+    <main class="page">
+        <div class="page-header">
+            <h1>Pricing Configuration</h1>
+            <p>Configure pricing tiers, BIRT complexity rates, and deployment costs.</p>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <!-- Database Size Pricing -->
+        <div class="pricing-section">
+            <div class="pricing-section-header">
+                <h2>Database Size Pricing</h2>
+            </div>
+            <p class="pricing-section-desc" style="padding:12px 24px 0;">Configure pricing based on database size in GB
+            </p>
+            <div class="pricing-section-body">
+                <div class="form-group">
+                    <label>Base Price ($)</label>
+                    <input type="number" id="db_base_price" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Default Price per GB ($)</label>
+                    <input type="number" id="db_price_per_gb" step="0.01" min="0">
+                </div>
+                <div class="tier-section">
+                    <label><strong>Tiered Pricing (Optional)</strong></label>
+                    <div id="db_tiers"></div>
+                    <button type="button" class="add-tier-btn" onclick="addDbTier()">+ Add Tier</button>
+                </div>
+            </div>
+
+            <!-- Runs Pricing -->
+            <div class="pricing-section">
+                <div class="pricing-section-header">
+                    <h2>Number of Runs Pricing</h2>
+                </div>
+                <p class="pricing-section-desc" style="padding:12px 24px 0;">Configure pricing for migration runs</p>
+                <div class="pricing-section-body">
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label>Base Price ($)</label>
+                            <input type="number" id="runs_base_price" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Price per Run ($)</label>
+                            <input type="number" id="runs_price_per_run" step="0.01" min="0">
+                        </div>
+                    </div>
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label>Bulk Discount - Min Runs</label>
+                            <input type="number" id="runs_min_runs" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Bulk Discount - Percent (%)</label>
+                            <input type="number" id="runs_discount_percent" step="0.1" min="0" max="100">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deployment Pricing -->
+                <div class="pricing-section">
+                    <div class="pricing-section-header">
+                        <h2>Deployment Type Pricing</h2>
+                    </div>
+                    <p class="pricing-section-desc" style="padding:12px 24px 0;">Configure pricing for deployment
+                        options</p>
+                    <div class="pricing-section-body">
+                        <div class="two-column">
+                            <div class="form-group">
+                                <label>In-house VM ($)</label>
+                                <input type="number" id="deploy_inhouse" step="0.01" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Client Premises ($)</label>
+                                <input type="number" id="deploy_client" step="0.01" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WHERE Clauses Pricing -->
+                    <div class="pricing-section">
+                        <div class="pricing-section-header">
+                            <h2>WHERE Clauses Pricing</h2>
+                        </div>
+                        <p class="pricing-section-desc" style="padding:12px 24px 0;">Additional pricing when migration
+                            contains WHERE clauses</p>
+                        <div class="pricing-section-body">
+                            <div class="form-group">
+                                <label>Base Price ($)</label>
+                                <input type="number" id="where_base_price" step="0.01" min="0">
+                            </div>
+                        </div>
+
+                        <!-- BIRT Reports Pricing -->
+                        <div class="pricing-section">
+                            <div class="pricing-section-header">
+                                <h2>BIRT Reports Complexity Pricing</h2>
+                            </div>
+                            <p class="pricing-section-desc" style="padding:12px 24px 0;">Configure pricing per
+                                complexity level (0-5)</p>
+                            <div class="pricing-section-body">
+                                <div class="complexity-grid" id="birt_complexity"></div>
+                            </div>
+
+                            <!-- Maximo Upgrade Pricing -->
+                            <div class="pricing-section">
+                                <div class="pricing-section-header">
+                                    <h2>Maximo Upgrade Feature Pricing</h2>
+                                </div>
+                                <p class="pricing-section-desc" style="padding:12px 24px 0;">Configure pricing for
+                                    Maximo upgrade features</p>
+                                <div class="pricing-section-body">
+                                    <div class="form-group">
+                                        <label>Base Price ($)</label>
+                                        <input type="number" id="maximo_base_price" step="0.01" min="0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Price per Feature ($)</label>
+                                        <input type="number" id="maximo_price_per_feature" step="0.01" min="0">
+                                    </div>
+                                </div>
+
+                                <div class="pricing-section">
+                                    <div class="pricing-section-header">
+                                        <h2>Add-On Installation Pricing</h2>
+                                    </div>
+                                    <p class="pricing-section-desc" style="padding:12px 24px 0;">Configure pricing for
+                                        Add-On Installation Services</p>
+                                    <div class="pricing-section-body">
+                                        <div class="three-column">
+                                            <div class="form-group">
+                                                <label>Db2 Installation Price ($)</label>
+                                                <input type="number" id="addon_db2_price" step="0.01" min="0">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Birt Installation Price ($)</label>
+                                                <input type="number" id="addon_birt_price" step="0.01" min="0">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Maximo Installation Price ($)</label>
+                                                <input type="number" id="addon_maximo_price" step="0.01" min="0">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button class="save-all-btn" onclick="saveAllPricing()">💾 Save All Pricing
+                                        Configuration</button>
+    </main>
+
+    <script>
+        const API_URL = window.location.origin || 'http://localhost:8002';
+        let dbTierCount = 0;
+
+        // Load pricing configuration on page load
+        async function loadPricingConfig() {
+            try {
+                const response = await fetch(`${API_URL}/api/pricing-config`);
+                const configs = await response.json();
+
+                // Database Size Pricing
+                if (configs.database_size_pricing) {
+                    const db = configs.database_size_pricing.value;
+                    document.getElementById('db_base_price').value = db.base_price || 100;
+                    document.getElementById('db_price_per_gb').value = db.price_per_gb || 50;
+                    if (db.tiers && db.tiers.length > 0) {
+                        db.tiers.forEach(tier => {
+                            addDbTier(tier.max_gb, tier.price_per_gb);
+                        });
+                    }
+                }
+
+                // Runs Pricing
+                if (configs.runs_pricing) {
+                    const runs = configs.runs_pricing.value;
+                    document.getElementById('runs_base_price').value = runs.base_price || 200;
+                    document.getElementById('runs_price_per_run').value = runs.price_per_run || 100;
+                    if (runs.bulk_discount) {
+                        document.getElementById('runs_min_runs').value = runs.bulk_discount.min_runs || 10;
+                        document.getElementById('runs_discount_percent').value = runs.bulk_discount.discount_percent || 10;
+                    }
+                }
+
+                // Deployment Pricing
+                if (configs.deployment_pricing) {
+                    const deploy = configs.deployment_pricing.value;
+                    document.getElementById('deploy_inhouse').value = deploy.inhouse_vm || 500;
+                    document.getElementById('deploy_client').value = deploy.client_premises || 1000;
+                }
+
+                // WHERE Clauses Pricing
+                if (configs.where_clauses_pricing) {
+                    const where = configs.where_clauses_pricing.value;
+                    document.getElementById('where_base_price').value = where.base_price || 300;
+                }
+
+                // BIRT Reports Pricing
+                if (configs.birt_reports_pricing) {
+                    const birt = configs.birt_reports_pricing.value;
+                    if (birt.complexity_pricing) {
+                        for (let i = 0; i <= 5; i++) {
+                            const comp = birt.complexity_pricing[i.toString()] || {};
+                            addBirtComplexity(i, comp.price_per_report || 0, comp.description || '');
+                        }
+                    }
+                }
+
+                // Maximo Upgrade Pricing
+                if (configs.maximo_upgrade_pricing) {
+                    const maximo = configs.maximo_upgrade_pricing.value;
+                    document.getElementById('maximo_base_price').value = maximo.base_price || 0;
+                    document.getElementById('maximo_price_per_feature').value = maximo.price_per_feature || 0;
+                } else {
+                    // Set defaults if not exists
+                    document.getElementById('maximo_base_price').value = 0;
+                    document.getElementById('maximo_price_per_feature').value = 0;
+                }
+
+                // Add-On Installation Pricing
+                if (configs.addon_installation_pricing) {
+                    const addon = configs.addon_installation_pricing.value;
+                    document.getElementById('addon_db2_price').value = addon.db2_installation || 500;
+                    document.getElementById('addon_birt_price').value = addon.birt_installation || 500;
+                    document.getElementById('addon_maximo_price').value = addon.maximo_installation || 500;
+                } else {
+                    document.getElementById('addon_db2_price').value = 500;
+                    document.getElementById('addon_birt_price').value = 500;
+                    document.getElementById('addon_maximo_price').value = 500;
+                }
+
+            } catch (error) {
+                showMessage('Error loading pricing configuration: ' + error.message, 'error');
+            }
+        }
+
+        function addDbTier(maxGb = null, pricePerGb = 0) {
+            const tiersDiv = document.getElementById('db_tiers');
+            const tierDiv = document.createElement('div');
+            tierDiv.className = 'tier-item';
+            tierDiv.id = `tier_${dbTierCount}`;
+            tierDiv.innerHTML = `
+                <div>
+                    <label>Max GB (leave empty for unlimited)</label>
+                    <input type="number" id="tier_max_gb_${dbTierCount}" step="0.01" min="0" value="${maxGb || ''}" placeholder="Unlimited">
+                </div>
+                <div>
+                    <label>Price per GB ($)</label>
+                    <input type="number" id="tier_price_${dbTierCount}" step="0.01" min="0" value="${pricePerGb}">
+                </div>
+                <button type="button" class="remove-tier-btn" onclick="removeDbTier(${dbTierCount})">Remove</button>
+            `;
+            tiersDiv.appendChild(tierDiv);
+            dbTierCount++;
+        }
+
+        function removeDbTier(id) {
+            const tier = document.getElementById(`tier_${id}`);
+            if (tier) tier.remove();
+        }
+
+        function addBirtComplexity(level, price = 0, description = '') {
+            const descriptions = [
+                'No conversion needed',
+                'Minimal effort',
+                'Simple conversion',
+                'Moderate effort',
+                'Complex conversion',
+                'Very complex'
+            ];
+            const grid = document.getElementById('birt_complexity');
+            const item = document.createElement('div');
+            item.className = 'complexity-item';
+            item.innerHTML = `
+                <label>Complexity ${level}</label>
+                <input type="number" id="birt_comp_${level}_price" step="0.01" min="0" value="${price}" placeholder="Price per report">
+                <input type="text" id="birt_comp_${level}_desc" value="${description || descriptions[level]}" placeholder="Description" style="margin-top: 5px;">
+            `;
+            grid.appendChild(item);
+        }
+
+        async function saveAllPricing() {
+            try {
+                // Collect all pricing data
+                const pricing = {
+                    database_size_pricing: {
+                        base_price: parseFloat(document.getElementById('db_base_price').value) || 100,
+                        price_per_gb: parseFloat(document.getElementById('db_price_per_gb').value) || 50,
+                        tiers: []
+                    },
+                    runs_pricing: {
+                        base_price: parseFloat(document.getElementById('runs_base_price').value) || 200,
+                        price_per_run: parseFloat(document.getElementById('runs_price_per_run').value) || 100,
+                        bulk_discount: {
+                            min_runs: parseInt(document.getElementById('runs_min_runs').value) || 10,
+                            discount_percent: parseFloat(document.getElementById('runs_discount_percent').value) || 10
+                        }
+                    },
+                    deployment_pricing: {
+                        inhouse_vm: parseFloat(document.getElementById('deploy_inhouse').value) || 500,
+                        client_premises: parseFloat(document.getElementById('deploy_client').value) || 1000
+                    },
+                    where_clauses_pricing: {
+                        base_price: parseFloat(document.getElementById('where_base_price').value) || 300
+                    },
+                    birt_reports_pricing: {
+                        base_price: 0,
+                        complexity_pricing: {}
+                    },
+                    maximo_upgrade_pricing: {
+                        base_price: parseFloat(document.getElementById('maximo_base_price').value) || 0,
+                        price_per_feature: parseFloat(document.getElementById('maximo_price_per_feature').value) || 0
+                    },
+                    addon_installation_pricing: {
+                        db2_installation: parseFloat(document.getElementById('addon_db2_price').value) || 500,
+                        birt_installation: parseFloat(document.getElementById('addon_birt_price').value) || 500,
+                        maximo_installation: parseFloat(document.getElementById('addon_maximo_price').value) || 500
+                    }
+                };
+
+                // Collect DB tiers
+                for (let i = 0; i < dbTierCount; i++) {
+                    const maxGbEl = document.getElementById(`tier_max_gb_${i}`);
+                    const priceEl = document.getElementById(`tier_price_${i}`);
+                    if (maxGbEl && priceEl && maxGbEl.parentElement.parentElement.parentElement) {
+                        const maxGb = maxGbEl.value ? parseFloat(maxGbEl.value) : null;
+                        const price = parseFloat(priceEl.value) || 0;
+                        if (price > 0) {
+                            pricing.database_size_pricing.tiers.push({
+                                max_gb: maxGb,
+                                price_per_gb: price
+                            });
+                        }
+                    }
+                }
+
+                // Collect BIRT complexity pricing
+                for (let i = 0; i <= 5; i++) {
+                    const priceEl = document.getElementById(`birt_comp_${i}_price`);
+                    const descEl = document.getElementById(`birt_comp_${i}_desc`);
+                    if (priceEl && descEl) {
+                        pricing.birt_reports_pricing.complexity_pricing[i.toString()] = {
+                            price_per_report: parseFloat(priceEl.value) || 0,
+                            description: descEl.value || ''
+                        };
+                    }
+                }
+
+                // Save each pricing config
+                const configs = [
+                    { key: 'database_size_pricing', value: pricing.database_size_pricing, desc: 'Pricing based on database size in GB' },
+                    { key: 'runs_pricing', value: pricing.runs_pricing, desc: 'Pricing for number of runs' },
+                    { key: 'deployment_pricing', value: pricing.deployment_pricing, desc: 'Pricing based on deployment type' },
+                    { key: 'where_clauses_pricing', value: pricing.where_clauses_pricing, desc: 'Additional pricing for WHERE clauses' },
+                    { key: 'birt_reports_pricing', value: pricing.birt_reports_pricing, desc: 'Complexity-based pricing for BIRT reports' },
+                    { key: 'maximo_upgrade_pricing', value: pricing.maximo_upgrade_pricing, desc: 'Pricing for Maximo upgrade features' },
+                    { key: 'addon_installation_pricing', value: pricing.addon_installation_pricing, desc: 'Pricing for Add-On Installation Services' }
+                ];
+
+                for (const config of configs) {
+                    const response = await fetch(`${API_URL}/api/pricing-config/${config.key}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            value: config.value,
+                            description: config.desc
+                        })
+                    });
+
+                    if (!response.ok) {
+                        // Try creating if update fails
+                        const createResponse = await fetch(`${API_URL}/api/pricing-config`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                config_key: config.key,
+                                value: config.value,
+                                description: config.desc
+                            })
+                        });
+                        if (!createResponse.ok) {
+                            throw new Error(`Failed to save ${config.key}`);
+                        }
+                    }
+                }
+
+                showMessage('✅ All pricing configuration saved successfully!', 'success');
+            } catch (error) {
+                showMessage('❌ Error saving pricing: ' + error.message, 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = `message ${type} show`;
+            setTimeout(() => {
+                msg.classList.remove('show');
+            }, 5000);
+        }
+
+        // Initialize on page load
+        loadPricingConfig();
+    </script>
+</body>
+
+</html>
