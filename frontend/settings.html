@@ -1422,7 +1422,7 @@
                     </div>
                     <div class="email-mockup-subject">
                         <strong id="previewSubjectLine">—</strong><br>
-                        <span>To: <strong>john.doe@example.com</strong></span>
+                        <span>To: <strong id="previewToLine">john.doe@example.com</strong></span>
                     </div>
                     <iframe class="email-mockup-iframe" id="previewIframe" title="Email body preview"></iframe>
                 </div>
@@ -1869,6 +1869,22 @@
         const clientBodyInp = document.getElementById('clientBodyOverride');
         const saveClientBtn = document.getElementById('saveClientTplBtn');
 
+        const SAMPLE = {
+            client_name: 'John Doe',
+            proposal_number: 'PROP-20240305-120000',
+            project_name: 'My Test Project',
+        };
+
+        function applyPlaceholders(text, overrides = {}) {
+            if (!text) return '';
+            let out = text;
+            const data = { ...SAMPLE, ...overrides };
+            for (const [k, v] of Object.entries(data)) {
+                out = out.replaceAll(`{{${k}}}`, v);
+            }
+            return out;
+        }
+
         let _cachedTemplates = [];
 
         function openModal(email = '', subject = '', body = '') {
@@ -1908,7 +1924,7 @@
                 <div class="client-card">
                     <div class="client-info">
                         <h4>${t.client_email}</h4>
-                        <p>${t.subject.substring(0, 50)}${t.subject.length > 50 ? '...' : ''}</p>
+                        <p>${applyPlaceholders(t.subject, { client_name: t.client_email.split('@')[0] }).substring(0, 50)}${t.subject.length > 50 ? '...' : ''}</p>
                     </div>
                     <div class="client-actions">
                         <button class="btn-ghost" onclick="previewOverride(${idx})">👁️ Preview</button>
@@ -1927,9 +1943,12 @@
         window.previewOverride = (idx) => {
             const t = _cachedTemplates[idx];
             if (t) {
-                // Smart detection: If no obvious HTML tags, treat as plain text (wrapped)
                 const isPlain = !/<[a-z][\s\S]*>/i.test(t.body);
-                renderPreview(t.subject, t.body, isPlain);
+                // Use the client email prefix as a name since we don't have the full name here
+                const name = t.client_email.split('@')[0];
+                renderPreview(t.subject, t.body, isPlain, {
+                    client_name: name
+                }, t.client_email);
             }
         };
 
@@ -1970,45 +1989,29 @@
         const previewSubjectLine = document.getElementById('previewSubjectLine');
         const previewIframe = document.getElementById('previewIframe');
 
-        const SAMPLE = {
-            client_name: 'John Doe',
-            proposal_number: 'PROP-20240305-120000',
-            project_name: 'My Test Project',
-            logo_block: '',
-        };
+        function renderPreview(rawSubject, rawBody, isPlain, overrides = {}, recipientEmail = 'john.doe@example.com') {
+            const subject = applyPlaceholders(rawSubject || 'No subject', overrides);
+            let body = applyPlaceholders(rawBody || 'No body content.', overrides);
 
-        function applyPlaceholders(text) {
-            let out = text;
-            for (const [k, v] of Object.entries(SAMPLE)) {
-                out = out.replaceAll(`{{${k}}}`, v);
-            }
-            return out;
-        }
-
-        function renderPreview(rawSubject, rawBody, isPlain) {
-            const subject = applyPlaceholders(rawSubject || 'No subject');
-            let body = applyPlaceholders(rawBody || 'No body content.');
+            // Update the mockup "To:" field
+            const recipientEl = document.getElementById('previewToLine');
+            if (recipientEl) recipientEl.textContent = recipientEmail;
 
             if (isPlain) {
                 const safeMsg = body.replace(/\n/g, '<br>');
-                const logoImg = document.getElementById('logoImg');
-                const logoHtml = (logoImg && logoImg.style.display !== 'none')
-                    ? `<div style="text-align:center;padding:24px 36px 0;"><img src="${logoImg.src}" style="max-height:70px;max-width:220px;object-fit:contain;" alt="Logo" /></div>`
-                    : '';
-
                 body = `
                 <html>
                   <body style="margin:0;padding:0;background:#f8f9fc;font-family:'Segoe UI',Arial,sans-serif;">
-                    ${logoHtml}
-                    <div style="max-width:600px;margin:20px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,0.05);border:1px solid #eef0f5;">
-                      <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:40px;text-align:left;">
-                        <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">Proposal Update</h1>
+                    <div style="max-width:600px;margin:30px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.06);border-top: 5px solid #6366f1;">
+                      <div style="padding: 40px 40px 20px; text-align: center;">
+                        <h1 style="color:#1e293b;margin:0;font-size:24px;font-weight:800;letter-spacing:-0.02em;">Proposal Update</h1>
+                        <div style="height:2px;width:30px;background:#6366f1;margin:16px auto;"></div>
                       </div>
-                      <div style="padding:40px;font-size:16px;color:#1e293b;line-height:1.6;">
+                      <div style="padding: 10px 45px 50px; font-size:16px; color:#475569; line-height:1.7;">
                         ${safeMsg}
                       </div>
-                      <div style="background:#f1f5f9;padding:20px 40px;text-align:center;font-size:12px;color:#94a3b8;">
-                        This is an automated message from the Proposal Automation System.
+                      <div style="background:#f8fafc;padding:24px 40px;text-align:center;font-size:12px;color:#94a3b8;border-top:1px solid #f1f5f9;">
+                        This is an automated message from the <strong>Proposal Automation System</strong>.
                       </div>
                     </div>
                   </body>

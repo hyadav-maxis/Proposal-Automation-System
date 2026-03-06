@@ -594,8 +594,7 @@ class ProposalService:
         _DEFAULT_SUBJECT = "Proposal {{proposal_number}} — {{project_name}}"
         _DEFAULT_BODY = """<html>
   <body style="margin:0;padding:0;background:#f5f6fa;font-family:Arial,sans-serif;">
-    {{logo_block}}
-    <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.08);">
+    <div style="max-width:600px;margin:30px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.08);">
       <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:32px 36px;">
         <h1 style="color:#fff;margin:0;font-size:1.4rem;font-weight:700;">Proposal Ready</h1>
         <p style="color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:0.9rem;">{{proposal_number}}</p>
@@ -638,28 +637,11 @@ Proposal Automation Team"""
             if not body_tpl:
                 body_tpl = _DEFAULT_PLAIN_BODY if mode == "plain" else _DEFAULT_BODY
 
-        # 4. Build logo block (looks for company_logo.* in the static folder)
-        import os as _os
-        _ROOT = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-        _STATIC_DIR = _os.path.join(_ROOT, "static")
-        logo_block = ""
-        for _ext in ("png", "jpg", "jpeg"):
-            _p = _os.path.join(_STATIC_DIR, f"company_logo.{_ext}")
-            if _os.path.isfile(_p):
-                logo_url = "http://localhost:8000"  # Fallback
-                logo_block = (
-                    f'<div style="text-align:center;padding:24px 36px 0;">'
-                    f'<img src="{logo_url}/static/company_logo.{_ext}" '
-                    f'alt="Company Logo" style="max-height:70px;max-width:220px;object-fit:contain;" /></div>'
-                )
-                break
-
-        # 5. Replace placeholders
+        # 4. Replace placeholders
         replacements = {
             "client_name": proposal_data["client_name"],
             "proposal_number": proposal_data["proposal_number"],
             "project_name": proposal_data["project_name"],
-            "logo_block": logo_block,
         }
         for key, val in replacements.items():
             subject_tpl = subject_tpl.replace(f"{{{{{key}}}}}", str(val))
@@ -670,16 +652,16 @@ Proposal Automation Team"""
             safe_msg = body_tpl.replace("\n", "<br>")
             body_tpl = f"""<html>
   <body style="margin:0;padding:0;background:#f8f9fc;font-family:'Segoe UI',Arial,sans-serif;">
-    {logo_block}
-    <div style="max-width:600px;margin:20px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,0.05);border:1px solid #eef0f5;">
-      <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:40px;text-align:left;">
-        <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">Proposal Update</h1>
+    <div style="max-width:600px;margin:30px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.06);border-top: 5px solid #6366f1;">
+      <div style="padding: 40px 40px 20px; text-align: center;">
+        <h1 style="color:#1e293b;margin:0;font-size:24px;font-weight:800;letter-spacing:-0.02em;">Proposal Update</h1>
+        <div style="height:2px;width:30px;background:#6366f1;margin:16px auto;"></div>
       </div>
-      <div style="padding:40px;font-size:16px;color:#1e293b;line-height:1.6;">
+      <div style="padding: 10px 45px 50px; font-size:16px; color:#475569; line-height:1.7;">
         {safe_msg}
       </div>
-      <div style="background:#f1f5f9;padding:20px 40px;text-align:center;font-size:12px;color:#94a3b8;">
-        This is an automated message from the Proposal Automation System.
+      <div style="background:#f8fafc;padding:24px 40px;text-align:center;font-size:12px;color:#94a3b8;border-top:1px solid #f1f5f9;">
+        This is an automated message from the <strong>Proposal Automation System</strong>.
       </div>
     </div>
   </body>
