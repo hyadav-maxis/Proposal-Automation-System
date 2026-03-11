@@ -9,6 +9,7 @@ export default function Proposals() {
   const [proposals, setProposals] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
+  const [locationFilter, setLocationFilter] = useState('all');
   const [sortKey, setSortKey] = useState('created_at');
   const [sortDir, setSortDir] = useState(-1);
   const [loading, setLoading] = useState(true);
@@ -20,18 +21,22 @@ export default function Proposals() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    loadProposals();
     if (searchParams.has('updated')) {
       setTimeout(() => showToast('✅ Proposal updated & pricing recalculated!', 'success'), 600);
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
 
-  async function loadProposals() {
+  useEffect(() => {
+    loadProposals(locationFilter);
+  }, [locationFilter]);
+
+  async function loadProposals(loc = 'all') {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiJson('/api/proposals');
+      const url = loc && loc !== 'all' ? `/api/proposals?location=${loc}` : '/api/proposals';
+      const data = await apiJson(url);
       setProposals(data);
     } catch (err) {
       setError(err.message);
@@ -167,8 +172,38 @@ export default function Proposals() {
             <input type="text" placeholder="Search by proposal #, client, project…" value={search} onChange={e => setSearch(e.target.value)}
               style={{ border: 'none', outline: 'none', background: 'transparent', color: 'var(--text)', fontSize: '0.875rem', fontFamily: "'Inter', sans-serif", width: '100%' }} />
           </div>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-            {filtered.length} proposal{filtered.length !== 1 ? 's' : ''}
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Location:</span>
+              <select 
+                value={locationFilter} 
+                onChange={e => setLocationFilter(e.target.value)}
+                style={{ 
+                  background: 'var(--surface2)', 
+                  border: '1px solid var(--border)', 
+                  borderRadius: 30, 
+                  padding: '8px 32px 8px 16px', 
+                  fontSize: '0.875rem', 
+                  color: 'var(--text)', 
+                  outline: 'none', 
+                  cursor: 'pointer',
+                  appearance: 'none',
+                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 12px center',
+                  backgroundSize: '14px'
+                }}
+              >
+                <option value="all">All Locations</option>
+                <option value="standard">Standard</option>
+                <option value="US_based">US Based</option>
+              </select>
+            </div>
+
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', fontWeight: 500 }}>
+              <strong style={{ color: 'var(--text-muted)' }}>{filtered.length}</strong> proposal{filtered.length !== 1 ? 's' : ''}
+            </div>
           </div>
         </div>
 
