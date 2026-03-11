@@ -8,13 +8,13 @@ class ProposalCreate(BaseModel):
     """Request body for creating a new proposal."""
 
     client_name: str
-    client_email: Optional[str] = None
+    client_email: str
     project_name: str
     database_size_gb: float = Field(..., gt=0)
     number_of_runs: int = Field(..., gt=0)
     deployment_type: str = Field(..., pattern="^(inhouse_vm|client_premises)$")
-    # Resource location: 'standard' (default) or 'US_based' (+35%)
-    resource_location: str = Field(default="standard", pattern="^(standard|US_based)$")
+    # Resource location: 'standard' or 'US_based' (+35%)
+    resource_location: str = Field(..., pattern="^(standard|US_based)$")
     has_where_clauses: bool = False
     has_birt_reports: bool = False
     num_birt_reports: int = 1

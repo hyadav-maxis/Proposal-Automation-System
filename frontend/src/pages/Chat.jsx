@@ -56,7 +56,8 @@ export default function Chat() {
           });
           const sysMsg = {
             role: 'system',
-            content: `✅ Proposal Created!\n\nProposal #${proposalRes.proposal_number}\nTotal: $${parseFloat(proposalRes.total_price || proposalRes.pricing_breakdown?.total_price || 0).toFixed(2)}\n\n📄 [Download PDF](/api/export/proposal/${proposalRes.proposal_id}/pdf)\n📊 [Download Excel](/api/export/proposal/${proposalRes.proposal_id}/excel)`,
+            proposalId: proposalRes.proposal_id,
+            content: `✅ Proposal Created!\n\nProposal #${proposalRes.proposal_number}\nTotal: $${parseFloat(proposalRes.total_price || proposalRes.pricing_breakdown?.total_price || 0).toFixed(2)}`,
           };
           setMessages(prev => [...prev, sysMsg]);
         } catch (err) {
@@ -68,6 +69,16 @@ export default function Chat() {
       setMessages(prev => [...prev, errMsg]);
     } finally {
       setSending(false);
+    }
+  }
+
+  async function sendEmail(id) {
+    try {
+      showToast('✉️ Sending email to client…', 'info');
+      await apiJson(`/api/proposals/${id}/send-email`, { method: 'POST' });
+      showToast('✅ Email sent successfully!', 'success');
+    } catch (err) {
+      showToast('❌ Failed to send email: ' + err.message, 'error');
     }
   }
 
@@ -119,7 +130,22 @@ export default function Chat() {
           <div key={i} className={`chat-msg chat-msg-${msg.role}`}>
             <div className="chat-msg-bubble">
               {msg.role === 'system' ? (
-                <div dangerouslySetInnerHTML={{ __html: msg.content.replace(/\n/g, '<br>').replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" style="color: var(--accent)">$1</a>') }} />
+                <div>
+                  <div dangerouslySetInnerHTML={{ __html: msg.content.replace(/\n/g, '<br>').replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" style="color: var(--accent)">$1</a>') }} />
+                  {msg.proposalId && (
+                    <div style={{ marginTop: 14, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      <a href={`/api/export/proposal/${msg.proposalId}/pdf`} target="_blank" rel="noreferrer" className="chat-action-btn pdf">
+                        📄 PDF
+                      </a>
+                      <a href={`/api/export/proposal/${msg.proposalId}/excel`} target="_blank" rel="noreferrer" className="chat-action-btn excel">
+                        📊 Excel
+                      </a>
+                      <button onClick={() => sendEmail(msg.proposalId)} className="chat-action-btn email">
+                        ✉️ Send Email
+                      </button>
+                    </div>
+                  )}
+                </div>
               ) : (
                 msg.content
               )}

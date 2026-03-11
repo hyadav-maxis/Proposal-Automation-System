@@ -184,3 +184,57 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Action Buttons for Proposals */
+.chat-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+  font-family: 'Inter', sans-serif;
+  user-select: none;
+}
+
+.chat-action-btn.pdf {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+.chat-action-btn.pdf:hover {
+  background: #dc2626;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+.chat-action-btn.excel {
+  background: #f0fdf4;
+  color: #16a34a;
+  border-color: #bbf7d0;
+}
+.chat-action-btn.excel:hover {
+  background: #16a34a;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+}
+
+.chat-action-btn.email {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: #bfdbfe;
+}
+.chat-action-btn.email:hover {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.chat-action-btn:active {
+  transform: translateY(1px);
+}
