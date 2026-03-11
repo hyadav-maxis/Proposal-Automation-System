@@ -37,11 +37,13 @@ pip install -r requirements.txt
 ### 2. Setup Database
 
 1. Create PostgreSQL database:
+
 ```sql
 CREATE DATABASE proposal_db;
 ```
 
 2. Run the schema (located in `sql/`):
+
 ```bash
 psql -U postgres -d proposal_db -f sql/database_schema.sql
 ```
@@ -56,6 +58,7 @@ psql -U postgres -d proposal_db -f sql/database_schema.sql
 ```bash
 python run.py
 ```
+
 The server will start on `http://localhost:8000`. Hot-reload is enabled for the `app/` folder.
 
 ---
@@ -78,7 +81,7 @@ proposal-automation/
 │   ├── api/              # Route definitions (v1)
 │   ├── core/             # Config, DB, Exceptions
 │   ├── repositories/     # SQLite/PostgreSQL Queries
-│   ├── schemas/          # Pydantic Request/Response Models
+│   ├── models/          # Pydantic Request/Response Models
 │   ├── services/         # Business Logic & Orchestration
 │   ├── prompts/          # AI System Prompts
 │   └── main.py           # Application Factory
@@ -113,5 +116,6 @@ pytest tests/test_pricing_service.py
 ## API Documentation
 
 Once the server is running, visit:
+
 - **Swagger UI**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`

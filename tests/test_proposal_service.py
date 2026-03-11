@@ -7,7 +7,7 @@ Run:  pytest tests/test_proposal_service.py -v
 import pytest
 from unittest.mock import MagicMock, patch, call
 
-from app.schemas.proposal import ProposalCreate
+from app.models.proposal import ProposalCreate
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
