@@ -1,5 +1,8 @@
 """
-Settings API router — /api/settings/* (logo upload, health check & email template)
+Settings API router — /api/settings/* (logo upload, health check & email templates)
+
+Email templates are stored in the `client_email_templates` table with
+template_type SYSTEM (read-only default) or CUSTOM (user-created).
 """
 
 import json
@@ -19,7 +22,6 @@ from app.services.email_service import EmailService
 router = APIRouter(prefix="/api", tags=["Settings & Health"])
 
 # Resolve static dir relative to project root at import time
-# settings.py lives at app/api/v1/ → need 4× dirname to reach project root
 _ROOT = os.path.dirname(
     os.path.dirname(
         os.path.dirname(
@@ -54,6 +56,10 @@ def health_check(db=Depends(get_db)):
             detail=f"Database health check failed: {exc}",
         ) from exc
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Logo endpoints (unchanged)
+# ═══════════════════════════════════════════════════════════════════════════════
 
 @router.get("/settings/logo")
 def get_logo_status():
@@ -91,7 +97,6 @@ class SelectLogoRequest(BaseModel):
 @router.post("/settings/logo/select")
 def select_predefined_logo(body: SelectLogoRequest):
     """Select a predefined logo and set it as the active company logo."""
-    # Find the logo in our predefined list
     selected = next((l for l in _PREDEFINED_LOGOS if l["id"] == body.logo_id), None)
     if not selected:
         raise HTTPException(status_code=404, detail="Predefined logo not found")
@@ -101,8 +106,6 @@ def select_predefined_logo(body: SelectLogoRequest):
         raise HTTPException(status_code=404, detail="Logo file not found on disk")
 
     os.makedirs(_STATIC_DIR, exist_ok=True)
-
-    # Remove any existing company_logo files
     for old_ext in ("png", "jpg", "jpeg"):
         old = os.path.join(_STATIC_DIR, f"company_logo.{old_ext}")
         if os.path.isfile(old):
@@ -111,8 +114,7 @@ def select_predefined_logo(body: SelectLogoRequest):
             except OSError:
                 pass
 
-    # Determine destination extension from source
-    src_ext = os.path.splitext(selected["file"])[1]  # e.g. ".jpg"
+    src_ext = os.path.splitext(selected["file"])[1]
     dest = os.path.join(_STATIC_DIR, f"company_logo{src_ext}")
     shutil.copy2(src, dest)
 
@@ -133,8 +135,6 @@ async def upload_logo(file: UploadFile = File(...)):
 
     os.makedirs(_STATIC_DIR, exist_ok=True)
     ext = ".png" if file.content_type == "image/png" else ".jpg"
-
-    # Remove any existing logo (different extension)
     for old_ext in ("png", "jpg", "jpeg"):
         old = os.path.join(_STATIC_DIR, f"company_logo.{old_ext}")
         if os.path.isfile(old):
@@ -151,92 +151,19 @@ async def upload_logo(file: UploadFile = File(...)):
     return {"success": True, "url": f"/static/company_logo{ext}"}
 
 
-# ── Default email template values ────────────────────────────────────────────
-_DEFAULT_SUBJECT = "Proposal {{proposal_number}} — {{project_name}}"
-_DEFAULT_BODY = """<html>
-  <body style="margin:0;padding:0;background:#f5f6fa;font-family:Arial,sans-serif;">
-    {{logo_block}}
-    <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.08);">
-      <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:32px 36px;">
-        <h1 style="color:#fff;margin:0;font-size:1.4rem;font-weight:700;">Proposal Ready</h1>
-        <p style="color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:0.9rem;">{{proposal_number}}</p>
-      </div>
-      <div style="padding:32px 36px;">
-        <p style="font-size:1rem;color:#1e2433;margin:0 0 16px;">Dear <strong>{{client_name}}</strong>,</p>
-        <p style="color:#4b5563;line-height:1.7;margin:0 0 16px;">Please find attached the proposal for the project <strong>{{project_name}}</strong>.</p>
-        <p style="color:#4b5563;line-height:1.7;margin:0;">If you have any questions, feel free to reply to this email.</p>
-      </div>
-      <div style="background:#f8f9fc;padding:20px 36px;border-top:1px solid #e8eaf0;">
-        <p style="margin:0;font-size:0.85rem;color:#9ca3af;">Best regards,<br><strong style="color:#6366f1;">Proposal Automation System</strong></p>
-      </div>
-    </div>
-  </body>
-</html>"""
-
-_DEFAULT_PLAIN_BODY = """Dear {{client_name}},
-
-Please find attached the proposal for the project {{project_name}}. 
-
-Reference Number: {{proposal_number}}
-
-If you have any questions or need further clarification, please feel free to reach out.
-
-Best regards,
-Proposal Automation Team"""
-
-
-
-class EmailTemplateRequest(BaseModel):
-    subject: str
-    body: str
-    mode: str = "html"  # 'html' or 'plain'
-
-
-class TestEmailRequest(BaseModel):
-    to_email: str
-    subject: Optional[str] = None
-    body: Optional[str] = None
-
-
-class ClientTemplateRequest(BaseModel):
-    client_email: str
-    subject: str
-    body: str
-
-
-@router.get("/settings/client-templates")
-def list_client_templates(db=Depends(get_db)):
-    """Return all client-specific email template overrides."""
-    repo = PricingConfigRepository(db)
-    return {"templates": repo.list_client_templates()}
-
-
-@router.post("/settings/client-templates")
-def save_client_template(body: ClientTemplateRequest, db=Depends(get_db)):
-    """Create or update a template override for a specific client."""
-    repo = PricingConfigRepository(db)
-    repo.upsert_client_template(body.client_email, body.subject, body.body)
-    repo.commit()
-    return {"success": True, "message": f"Template for {body.client_email} saved"}
-
-
-@router.delete("/settings/client-templates/{client_email}")
-def delete_client_template(client_email: str, db=Depends(get_db)):
-    """Remove a client-specific template override."""
-    repo = PricingConfigRepository(db)
-    deleted = repo.delete_client_template(client_email)
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Template override not found")
-    repo.commit()
-    return {"success": True, "message": f"Template for {client_email} removed"}
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# Email Template endpoints (DB-backed via client_email_templates table)
+# ═══════════════════════════════════════════════════════════════════════════════
 
 def _get_logo_block() -> str:
-    """Return an <img> HTML block for the company logo if one exists, else empty string."""
+    """Return an <img> HTML block for the company logo if one exists."""
     for ext in ("png", "jpg", "jpeg"):
         p = os.path.join(_STATIC_DIR, f"company_logo.{ext}")
         if os.path.isfile(p):
-            logo_url = f"{app_settings.BASE_URL if hasattr(app_settings, 'BASE_URL') else 'http://localhost:8000'}/static/company_logo.{ext}"
+            logo_url = (
+                f"{app_settings.BASE_URL if hasattr(app_settings, 'BASE_URL') else 'http://localhost:8000'}"
+                f"/static/company_logo.{ext}"
+            )
             return (
                 f'<div style="text-align:center;padding:24px 36px 0;">'
                 f'<img src="{logo_url}" alt="Company Logo" '
@@ -245,103 +172,250 @@ def _get_logo_block() -> str:
     return ""
 
 
-def _apply_placeholders(text: str, data: dict, mode: str = "html") -> str:
-    """Replace {{placeholder}} tokens in text with actual values and handle wrapping if plain."""
-    # 1. Replace tokens
-    for key, value in data.items():
-        text = text.replace(f"{{{{{key}}}}}", str(value))
+def wrap_in_professional_layout(content: str, logo_block: str = "", subtitle: str = "") -> str:
+    """Wraps a message in the system's professional purple-themed HTML layout."""
+    if "<p" not in content and "<div" not in content:
+        content = content.replace("\n", "<br>")
 
-    # 2. If mode is plain, wrap in a professional layout
-    if mode == "plain":
-        # Convert newlines to <br> for HTML preview/send
-        safe_msg = text.replace("\n", "<br>")
-        logo_html = _get_logo_block()
-        
-        return f"""<html>
+    return f"""
+<!DOCTYPE html>
+<html>
   <body style="margin:0;padding:0;background:#f8f9fc;font-family:'Segoe UI',Arial,sans-serif;">
-    {logo_html}
-    <div style="max-width:600px;margin:20px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,0.05);border:1px solid #eef0f5;">
+    <div style="padding: 20px 0; text-align: center;">
+      {logo_block}
+    </div>
+    <div style="max-width:600px;margin:0 auto 40px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,0.05);border:1px solid #eef0f5;">
       <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:40px;text-align:left;">
-        <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">Proposal Update</h1>
+        <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:700;letter-spacing:-0.5px;">Proposal Ready</h1>
+        {f'<p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:14px;font-weight:500;">{subtitle}</p>' if subtitle else ''}
       </div>
-      <div style="padding:40px;font-size:16px;color:#1e293b;line-height:1.6;">
-        {safe_msg}
+      <div style="padding:40px;font-size:16px;color:#334155;line-height:1.7;">
+        {content}
       </div>
-      <div style="background:#f1f5f9;padding:20px 40px;text-align:center;font-size:12px;color:#94a3b8;">
-        This is an automated message from the Proposal Automation System.
+      <div style="background:#f1f5f9;padding:24px 40px;text-align:center;font-size:12px;color:#64748b;border-top:1px solid #e2e8f0;">
+        <p style="margin:0;">This is an automated message from the <strong>Proposal Automation System</strong>.</p>
+        <p style="margin:4px 0 0;">© 2026 All Rights Reserved.</p>
       </div>
     </div>
   </body>
-</html>"""
-        
+</html>
+"""
+
+
+def _apply_placeholders(text: str, data: dict, mode: str = "html") -> str:
+    """Replace {{placeholder}} tokens and wrap in the professional frame."""
+    for key, value in data.items():
+        # Handle {{key}}, {{ key }}, {{key }}, and {{ key}}
+        for token in [f"{{{{{key}}}}}", f"{{{{ {key} }}}}", f"{{{{{key} }}}}", f"{{{{ {key}}}}}]".replace("]", "")]:
+            text = text.replace(token, str(value))
+
+    if mode == "html" and "<html>" not in text:
+        logo_html = _get_logo_block()
+        prop_num = data.get("proposal_number", "PROP-TEST-123")
+        return wrap_in_professional_layout(text, logo_html, prop_num)
+
     return text
 
 
-@router.get("/settings/email-template")
-def get_email_template(db=Depends(get_db)):
-    """Return the saved email template (subject + body + mode) from pricing_config."""
+# ── Pydantic models ──────────────────────────────────────────────────────────
+
+class CreateTemplateRequest(BaseModel):
+    template_name: str
+    subject: str
+    body: str
+    template_type: str = "CUSTOM"
+
+
+class UpdateTemplateRequest(BaseModel):
+    template_name: str
+    subject: str
+    body: str
+
+
+class SetActiveTemplateRequest(BaseModel):
+    template_id: int
+
+
+class TestEmailRequest(BaseModel):
+    to_email: str
+    template_id: Optional[int] = None
+    subject: Optional[str] = None
+    body: Optional[str] = None
+
+
+# ── CRUD endpoints ───────────────────────────────────────────────────────────
+
+@router.get("/settings/email-templates")
+def list_email_templates(db=Depends(get_db)):
+    """Return all templates from client_email_templates with active indicator."""
     repo = PricingConfigRepository(db)
-    subject = repo.get_raw_value("email_template_subject")
-    body = repo.get_raw_value("email_template_body")
-    mode = repo.get_raw_value("email_template_mode") or "html"
-    
-    if not body:
-        body = _DEFAULT_PLAIN_BODY if mode == "plain" else _DEFAULT_BODY
-        
+    repo.ensure_system_template_exists()
+
+    templates = repo.get_all_email_templates()
+    active_id = repo.get_active_template_id()
+
+    # If no active selection yet, default to the SYSTEM template
+    if active_id is None and templates:
+        system_tpl = next((t for t in templates if t["template_type"] == "SYSTEM"), None)
+        if system_tpl:
+            active_id = system_tpl["id"]
+
     return {
-        "subject": subject if subject else _DEFAULT_SUBJECT,
-        "body": body,
-        "mode": mode,
+        "templates": templates,
+        "active_template_id": active_id,
         "placeholders": [
             {"key": "{{client_name}}", "label": "Client Name"},
             {"key": "{{proposal_number}}", "label": "Proposal Number"},
             {"key": "{{project_name}}", "label": "Project Name"},
+            {"key": "{{total_price}}", "label": "Total Price"},
             {"key": "{{logo_block}}", "label": "Company Logo (auto)"},
         ],
     }
 
 
-@router.post("/settings/email-template")
-def save_email_template(body: EmailTemplateRequest, db=Depends(get_db)):
-    """Save the email template subject, body, and mode to pricing_config."""
+@router.get("/settings/email-templates/active")
+def get_active_template(db=Depends(get_db)):
+    """Return the currently active (global) email template."""
     repo = PricingConfigRepository(db)
+    repo.ensure_system_template_exists()
+    tpl = repo.get_active_template()
+    if not tpl:
+        raise HTTPException(status_code=404, detail="No active template found")
+    return tpl
 
-    # Upsert subject
-    repo.upsert("email_template_subject", body.subject, "Subject line for proposal emails.")
 
-    # Upsert body
-    repo.upsert("email_template_body", body.body, "Email body/message content.")
+@router.get("/settings/email-templates/{template_id}")
+def get_template_by_id(template_id: int, db=Depends(get_db)):
+    """Return a single template by its ID."""
+    repo = PricingConfigRepository(db)
+    tpl = repo.get_email_template_by_id(template_id)
+    if not tpl:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return tpl
 
-    # Upsert mode
-    repo.upsert("email_template_mode", body.mode, "Editor mode: plain or html.")
+
+@router.post("/settings/email-templates")
+def create_email_template(body: CreateTemplateRequest, db=Depends(get_db)):
+    """Create a new CUSTOM email template."""
+    if not body.template_name.strip():
+        raise HTTPException(status_code=400, detail="Template name is required")
+    if not body.subject.strip():
+        raise HTTPException(status_code=400, detail="Subject is required")
+
+    repo = PricingConfigRepository(db)
+    new_id = repo.create_email_template(
+        template_name=body.template_name.strip(),
+        subject=body.subject.strip(),
+        body=body.body,
+        template_type="CUSTOM",  # Users can only create CUSTOM templates
+    )
+    repo.commit()
+    return {"success": True, "id": new_id, "message": f"Template '{body.template_name}' created"}
+
+
+@router.put("/settings/email-templates/{template_id}")
+def update_email_template(template_id: int, body: UpdateTemplateRequest, db=Depends(get_db)):
+    """Update an existing email template (name, subject, body)."""
+    if not body.template_name.strip():
+        raise HTTPException(status_code=400, detail="Template name is required")
+
+    repo = PricingConfigRepository(db)
+    existing = repo.get_email_template_by_id(template_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    updated = repo.update_email_template(
+        template_id=template_id,
+        template_name=body.template_name.strip(),
+        subject=body.subject.strip(),
+        body=body.body,
+    )
+    repo.commit()
+    return {"success": updated, "message": "Template updated"}
+
+
+@router.delete("/settings/email-templates/{template_id}")
+def delete_email_template(template_id: int, db=Depends(get_db)):
+    """Delete a CUSTOM email template. SYSTEM templates cannot be deleted."""
+    repo = PricingConfigRepository(db)
+    existing = repo.get_email_template_by_id(template_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Template not found")
+    if existing["template_type"] == "SYSTEM":
+        raise HTTPException(status_code=400, detail="Cannot delete the system default template")
+
+    # If deleting the active template, reset to SYSTEM
+    active_id = repo.get_active_template_id()
+    deleted = repo.delete_email_template(template_id)
+    if not deleted:
+        raise HTTPException(status_code=400, detail="Could not delete template")
+
+    if active_id == template_id:
+        # Reset active to the first SYSTEM template
+        templates = repo.get_all_email_templates()
+        system = next((t for t in templates if t["template_type"] == "SYSTEM"), None)
+        if system:
+            repo.set_active_template_id(system["id"])
 
     repo.commit()
-    return {"success": True, "message": "Email template saved successfully"}
+    return {"success": True, "message": "Template deleted"}
 
 
-@router.post("/settings/email-template/test")
-def send_test_email(body: TestEmailRequest, db=Depends(get_db)):
-    """Send a test email using the saved (or provided) template."""
+@router.post("/settings/email-templates/set-active")
+def set_active_template(body: SetActiveTemplateRequest, db=Depends(get_db)):
+    """Set the globally active email template by its ID."""
     repo = PricingConfigRepository(db)
+    tpl = repo.get_email_template_by_id(body.template_id)
+    if not tpl:
+        raise HTTPException(status_code=404, detail="Template not found")
 
-    subject_tpl = body.subject or repo.get_raw_value("email_template_subject") or _DEFAULT_SUBJECT
-    body_tpl = body.body or repo.get_raw_value("email_template_body") or _DEFAULT_BODY
-    mode = repo.get_raw_value("email_template_mode") or "html"
+    repo.set_active_template_id(body.template_id)
+    repo.commit()
+    return {
+        "success": True,
+        "message": f"'{tpl['template_name']}' is now the global email template",
+        "active_template_id": body.template_id,
+    }
+
+
+# ── Test email endpoint ─────────────────────────────────────────────────────
+
+@router.post("/settings/email-templates/test")
+def send_test_email(body: TestEmailRequest, db=Depends(get_db)):
+    """Send a test email using the active (or specified) template."""
+    repo = PricingConfigRepository(db)
+    repo.ensure_system_template_exists()
+
+    # Determine template content
+    if body.subject and body.body:
+        subject_tpl = body.subject
+        body_tpl = body.body
+    elif body.template_id:
+        tpl = repo.get_email_template_by_id(body.template_id)
+        if not tpl:
+            raise HTTPException(status_code=404, detail="Template not found")
+        subject_tpl = tpl["subject"]
+        body_tpl = tpl["body"]
+    else:
+        tpl = repo.get_active_template()
+        if not tpl:
+            raise HTTPException(status_code=404, detail="No active template found")
+        subject_tpl = tpl["subject"]
+        body_tpl = tpl["body"]
 
     # Sample data for placeholder replacement
     sample_data = {
         "client_name": "John Doe",
         "proposal_number": "PROP-20240305-120000",
         "project_name": "My Test Project",
+        "total_price": "$12,500.00",
         "logo_block": _get_logo_block(),
     }
 
-    rendered_subject = _apply_placeholders(subject_tpl, sample_data)
-    # If testing, prioritize current UI state but use mode logic
-    rendered_body = _apply_placeholders(body_tpl, sample_data, mode=mode)
+    rendered_subject = f"Test Mail: {_apply_placeholders(subject_tpl, sample_data, mode='text')}"
+    rendered_body = _apply_placeholders(body_tpl, sample_data, mode="html")
 
     svc = EmailService()
-    # We need a tiny placeholder PDF for the test
     try:
         dummy_pdf = b"%PDF-1.4 1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R>>endobj xref 0 4 0000000000 65535 f 0000000009 00000 n 0000000058 00000 n 0000000115 00000 n trailer<</Size 4/Root 1 0 R>>startxref 195 %%EOF"
         success = svc.send_email_with_attachment(

@@ -570,11 +570,12 @@ class ProposalService:
             "has_where_clauses": row.get("has_where_clauses"),
             "has_birt_reports": row.get("has_birt_reports"),
             "resource_location": row.get("resource_location"),
+            "total_price": float(row.get("total_price") or 0),
             "pricing_breakdown": pricing,
         }
 
     def send_proposal_via_email(self, proposal_id: int) -> bool:
-        """Fetch proposal, generate PDF, and send via email using the saved template."""
+        """Fetch proposal, generate PDF, and send via email using the active DB template."""
         # 1. Get proposal data
         proposal_data = self.get_for_export(proposal_id)
         if not proposal_data:
@@ -590,55 +591,24 @@ class ProposalService:
                 detail="Client email is missing for this proposal. Please update the proposal first.",
             )
 
-        # 3. Load template: Check for client-specific override first, then global config
-        _DEFAULT_SUBJECT = "Proposal {{proposal_number}} — {{project_name}}"
-        _DEFAULT_BODY = """<html>
-  <body style="margin:0;padding:0;background:#f5f6fa;font-family:Arial,sans-serif;">
-    {{logo_block}}
-    <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.08);">
-      <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:32px 36px;">
-        <h1 style="color:#fff;margin:0;font-size:1.4rem;font-weight:700;">Proposal Ready</h1>
-        <p style="color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:0.9rem;">{{proposal_number}}</p>
-      </div>
-      <div style="padding:32px 36px;">
-        <p style="font-size:1rem;color:#1e2433;margin:0 0 16px;">Dear <strong>{{client_name}}</strong>,</p>
-        <p style="color:#4b5563;line-height:1.7;margin:0 0 16px;">Please find attached the proposal for the project <strong>{{project_name}}</strong>.</p>
-        <p style="color:#4b5563;line-height:1.7;margin:0;">If you have any questions, feel free to reply to this email.</p>
-      </div>
-      <div style="background:#f8f9fc;padding:20px 36px;border-top:1px solid #e8eaf0;">
-        <p style="margin:0;font-size:0.85rem;color:#9ca3af;">Best regards,<br><strong style="color:#6366f1;">Proposal Automation System</strong></p>
-      </div>
-    </div>
-  </body>
-</html>"""
-        _DEFAULT_PLAIN_BODY = """Dear {{client_name}},
+        # 3. Load the active template from the DB
+        config_repo = self._pricing._config_repo
+        config_repo.ensure_system_template_exists()
+        active_tpl = config_repo.get_active_template()
 
-Please find attached the proposal for the project {{project_name}}. 
-
-Reference Number: {{proposal_number}}
-
-If you have any questions or need further clarification, please feel free to reach out.
-
-Best regards,
-Proposal Automation Team"""
-
-        client_tpl = self._pricing._config_repo.get_client_template(client_email)
-        
-        if client_tpl:
-            subject_tpl = client_tpl["subject"]
-            body_tpl = client_tpl["body"]
-            # Smart detection: defaults to plain if no obvious HTML tags found
-            has_html = bool(re.search(r'<[a-z][\s\S]*>', body_tpl, re.IGNORECASE))
-            mode = "html" if has_html else "plain"
+        if active_tpl:
+            subject_tpl = active_tpl["subject"] or ""
+            body_tpl = active_tpl["body"] or ""
         else:
-            subject_tpl = self._pricing._config_repo.get_raw_value("email_template_subject") or _DEFAULT_SUBJECT
-            mode = self._pricing._config_repo.get_raw_value("email_template_mode") or "html"
-            body_tpl = self._pricing._config_repo.get_raw_value("email_template_body")
-            
-            if not body_tpl:
-                body_tpl = _DEFAULT_PLAIN_BODY if mode == "plain" else _DEFAULT_BODY
+            # Absolute fallback (should never happen if ensure_system_template_exists ran)
+            subject_tpl = "Proposal {{proposal_number}} — {{project_name}}"
+            body_tpl = (
+                "Dear {{client_name}},\n\n"
+                "Please find attached the proposal for project {{project_name}}.\n\n"
+                "Best regards,\nProposal Automation Team"
+            )
 
-        # 4. Build logo block (looks for company_logo.* in the static folder)
+        # 4. Build logo block
         import os as _os
         _ROOT = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))))
         _STATIC_DIR = _os.path.join(_ROOT, "static")
@@ -646,7 +616,7 @@ Proposal Automation Team"""
         for _ext in ("png", "jpg", "jpeg"):
             _p = _os.path.join(_STATIC_DIR, f"company_logo.{_ext}")
             if _os.path.isfile(_p):
-                logo_url = "http://localhost:8000"  # Fallback
+                logo_url = "http://localhost:8000"
                 logo_block = (
                     f'<div style="text-align:center;padding:24px 36px 0;">'
                     f'<img src="{logo_url}/static/company_logo.{_ext}" '
@@ -659,31 +629,46 @@ Proposal Automation Team"""
             "client_name": proposal_data["client_name"],
             "proposal_number": proposal_data["proposal_number"],
             "project_name": proposal_data["project_name"],
+            "total_price": f"${float(proposal_data['total_price']):,.2f}",
             "logo_block": logo_block,
         }
         for key, val in replacements.items():
+            # Handle {{key}}, {{ key }}, {{key }}, and {{ key}}
+            for token in [f"{{{{{key}}}}}", f"{{{{ {key} }}}}", f"{{{{{key} }}}}", f"{{{{ {key}}}}}]".replace("]", "")]:
+                subject_tpl = subject_tpl.replace(token, str(val))
+                body_tpl = body_tpl.replace(token, str(val))
+            # Direct backup
             subject_tpl = subject_tpl.replace(f"{{{{{key}}}}}", str(val))
             body_tpl = body_tpl.replace(f"{{{{{key}}}}}", str(val))
 
-        # 6. Apply professional layout if in plain text mode
-        if mode == "plain":
+        # 6. Apply professional layout if not already full HTML
+        if "<html>" not in body_tpl:
             safe_msg = body_tpl.replace("\n", "<br>")
-            body_tpl = f"""<html>
+            prop_num = proposal_data.get("proposal_number", "")
+
+            body_tpl = f"""
+<!DOCTYPE html>
+<html>
   <body style="margin:0;padding:0;background:#f8f9fc;font-family:'Segoe UI',Arial,sans-serif;">
-    {logo_block}
-    <div style="max-width:600px;margin:20px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,0.05);border:1px solid #eef0f5;">
+    <div style="padding: 20px 0; text-align: center;">
+      {logo_block}
+    </div>
+    <div style="max-width:600px;margin:0 auto 40px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,0.05);border:1px solid #eef0f5;">
       <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:40px;text-align:left;">
-        <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">Proposal Update</h1>
+        <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:700;letter-spacing:-0.5px;">Proposal Ready</h1>
+        {f'<p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:14px;font-weight:500;">{prop_num}</p>' if prop_num else ''}
       </div>
-      <div style="padding:40px;font-size:16px;color:#1e293b;line-height:1.6;">
+      <div style="padding:40px;font-size:16px;color:#334155;line-height:1.7;">
         {safe_msg}
       </div>
-      <div style="background:#f1f5f9;padding:20px 40px;text-align:center;font-size:12px;color:#94a3b8;">
-        This is an automated message from the Proposal Automation System.
+      <div style="background:#f1f5f9;padding:24px 40px;text-align:center;font-size:12px;color:#64748b;border-top:1px solid #e2e8f0;">
+        <p style="margin:0;">This is an automated message from the <strong>Proposal Automation System</strong>.</p>
+        <p style="margin:4px 0 0;">© 2026 All Rights Reserved.</p>
       </div>
     </div>
   </body>
-</html>"""
+</html>
+"""
 
         # 7. Generate PDF
         pdf_bytes = self._export.generate_pdf(proposal_data)
