@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { apiJson, downloadFile } from '../api';
 import { useToast } from '../components/Toast';
+import './Proposals.css';
 
 export default function Proposals() {
   const showToast = useToast();
@@ -28,14 +29,22 @@ export default function Proposals() {
   }, []);
 
   useEffect(() => {
-    loadProposals(locationFilter);
-  }, [locationFilter]);
+    const timer = setTimeout(() => {
+      loadProposals(locationFilter, search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [locationFilter, search]);
 
-  async function loadProposals(loc = 'all') {
+  async function loadProposals(loc = 'all', q = '') {
     setLoading(true);
     setError(null);
     try {
-      const url = loc && loc !== 'all' ? `/api/proposals?location=${loc}` : '/api/proposals';
+      let url = '/api/proposals';
+      const params = new URLSearchParams();
+      if (loc && loc !== 'all') params.append('location', loc);
+      if (q) params.append('q', q);
+      if (params.toString()) url += `?${params.toString()}`;
+      
       const data = await apiJson(url);
       setProposals(data);
     } catch (err) {
@@ -138,15 +147,19 @@ export default function Proposals() {
           <p>View, manage, edit and download every generated proposal</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => handleDownload('/api/export/proposals/all/pdf', 'all_proposals.pdf')} 
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--surface)', color: 'var(--red)', border: '1px solid var(--red)', padding: '10px 18px', borderRadius: 30, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+          <button 
+            className="export-btn-pdf"
+            onClick={() => handleDownload(`/api/export/proposals/all/pdf?location=${locationFilter}&q=${encodeURIComponent(search)}`, 'all_proposals.pdf')} 
+          >
             📄 Export in PDF
           </button>
-          <button onClick={() => handleDownload('/api/export/proposals/all/excel', 'all_proposals.xlsx')} 
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--surface)', color: 'var(--green)', border: '1px solid var(--green)', padding: '10px 18px', borderRadius: 30, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+          <button 
+            className="export-btn-excel"
+            onClick={() => handleDownload(`/api/export/proposals/all/excel?location=${locationFilter}&q=${encodeURIComponent(search)}`, 'all_proposals.xlsx')} 
+          >
             📊 Export in Excel
           </button>
-          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#f59e0b', color: '#fff', border: 'none', padding: '11px 22px', borderRadius: 30, fontSize: '0.9rem', fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)', transition: 'transform 0.2s' }}>
+          <Link to="/" className="create-proposal-btn">
             ＋ Create New Proposal
           </Link>
         </div>
@@ -403,7 +416,7 @@ function ViewModal({ proposal: p, onClose, onSendEmail }) {
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Close</button>
           <button className="btn" style={{ background: 'var(--accent)', color: '#fff' }} onClick={onSendEmail}>✉️ Send Email</button>
-          <a href={`/api/export/proposal/${p.id}/pdf`} target="_blank" rel="noreferrer" className="btn btn-danger">📄 PDF</a>
+          <a href={`/api/export/proposal/${p.id}/pdf`} target="_blank" rel="noreferrer" className="btn-danger-text">📄 PDF</a>
           <a href={`/api/export/proposal/${p.id}/excel`} target="_blank" rel="noreferrer" className="btn" style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff' }}>📊 Excel</a>
         </div>
       </div>

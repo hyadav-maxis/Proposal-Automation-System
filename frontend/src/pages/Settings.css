@@ -517,13 +517,40 @@
   flex-shrink: 0;
 }
 
-.btn-danger {
+/* Ghost style for danger icons/buttons (transparent background) */
+.btn-danger-ghost {
   color: var(--red, #ef4444) !important;
   background: transparent !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }
 
-.btn-danger:hover {
-  background: rgba(239, 68, 68, 0.08) !important;
+.btn-danger-ghost:hover {
+  background: rgba(230, 46, 46, 0.08) !important;
 }
+
+/* Outline/Text style for danger buttons (e.g. PDF export) */
+.btn-danger-text {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 8px 16px !important;
+  background: red !important;
+  color: var(--red) !important;
+  border: 1px solid var(--red) !important;
+  border-radius: 8px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  text-decoration: none !important;
+  color: white !important;
+}
+
+/* .btn-danger-text:hover {
+  background: var(--red) !important;
+  color: #fff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2) !important;
+} */
