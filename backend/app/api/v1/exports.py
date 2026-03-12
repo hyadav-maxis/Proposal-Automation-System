@@ -51,11 +51,19 @@ def export_proposal_pdf(proposal_id: int, db=Depends(get_db)):
 
 
 @router.get("/proposals/all/pdf")
-def export_all_proposals_pdf(db=Depends(get_db)):
+def export_all_proposals_pdf(location: str = None, q: str = None, db=Depends(get_db)):
     """Download all proposals summary as a PDF file."""
-    proposals = ProposalService(db).list_proposals()
+    proposals = ProposalService(db).list_proposals(location=location, search=q)
+    
+    filter_parts = []
+    if location and location != "all":
+        filter_parts.append(f"Location: {location.replace('_', ' ').title()}")
+    if q:
+        filter_parts.append(f"Search: '{q}'")
+    filter_info = " | ".join(filter_parts) if filter_parts else "All Records"
+
     try:
-        pdf_bytes = _export_svc.generate_all_proposals_pdf(proposals)
+        pdf_bytes = _export_svc.generate_all_proposals_pdf(proposals, filter_info=filter_info)
         filename = f"all_proposals_{datetime.now().strftime('%Y%m%d')}.pdf"
         return Response(
             content=pdf_bytes,
@@ -71,11 +79,19 @@ def export_all_proposals_pdf(db=Depends(get_db)):
 
 
 @router.get("/proposals/all/excel")
-def export_all_proposals_excel(db=Depends(get_db)):
+def export_all_proposals_excel(location: str = None, q: str = None, db=Depends(get_db)):
     """Download all proposals summary as an Excel (.xlsx) file."""
-    proposals = ProposalService(db).list_proposals()
+    proposals = ProposalService(db).list_proposals(location=location, search=q)
+    
+    filter_parts = []
+    if location and location != "all":
+        filter_parts.append(f"Location: {location.replace('_', ' ').title()}")
+    if q:
+        filter_parts.append(f"Search: '{q}'")
+    filter_info = " | ".join(filter_parts) if filter_parts else "All Records"
+
     try:
-        excel_bytes = _export_svc.generate_all_proposals_excel(proposals)
+        excel_bytes = _export_svc.generate_all_proposals_excel(proposals, filter_info=filter_info)
         filename = f"all_proposals_{datetime.now().strftime('%Y%m%d')}.xlsx"
         return Response(
             content=excel_bytes,

@@ -296,8 +296,8 @@ class ProposalService:
 
         return proposal
 
-    def list_proposals(self, location: Optional[str] = None):
-        return self._repo.list_proposals(location=location)
+    def list_proposals(self, location: Optional[str] = None, search: Optional[str] = None):
+        return self._repo.list_proposals(location=location, search=search)
 
     def delete_proposal(self, proposal_id: int) -> dict:
         """Delete a proposal and all related data."""

@@ -342,7 +342,7 @@ class ExportService:
         wb.save(buf)
         return buf.getvalue()
 
-    def generate_all_proposals_excel(self, proposals: list) -> bytes:
+    def generate_all_proposals_excel(self, proposals: list, filter_info: Optional[str] = None) -> bytes:
         """Export all proposals as a summary Excel table."""
         if not _OPENPYXL:
             raise RuntimeError("openpyxl is not installed")
@@ -351,14 +351,22 @@ class ExportService:
         ws = wb.active
         ws.title = "All Proposals"
         
+        current_row = 1
+        if filter_info:
+            ws.cell(row=current_row, column=1, value=f"Filter: {filter_info}")
+            ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=8)
+            ws.cell(row=current_row, column=1).font = Font(italic=True, color="666666")
+            current_row += 1
+        
         headers = ["Proposal No.", "Client Name", "Email", "Project", "Location", "Created At", "Status", "Amount"]
         for col_idx, text in enumerate(headers, start=1):
-            cell = ws.cell(row=1, column=col_idx, value=text)
+            cell = ws.cell(row=current_row, column=col_idx, value=text)
             cell.font = Font(bold=True, color="FFFFFF")
             cell.fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
             cell.alignment = Alignment(horizontal="center")
 
-        for row_idx, p in enumerate(proposals, start=2):
+        for p_idx, p in enumerate(proposals):
+            row_idx = current_row + 1 + p_idx
             created = p.get("created_at")
             if isinstance(created, datetime):
                 created = created.strftime("%Y-%m-%d %H:%M")
@@ -386,7 +394,7 @@ class ExportService:
         wb.save(buf)
         return buf.getvalue()
 
-    def generate_all_proposals_pdf(self, proposals: list, logo_path: Optional[str] = None) -> bytes:
+    def generate_all_proposals_pdf(self, proposals: list, logo_path: Optional[str] = None, filter_info: Optional[str] = None) -> bytes:
         """Export all proposals as a summary PDF table."""
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter, leftMargin=0.5*inch, rightMargin=0.5*inch)
@@ -401,8 +409,13 @@ class ExportService:
             except Exception: pass
             
         styles = getSampleStyleSheet()
-        title_style = ParagraphStyle("Title", parent=styles["Heading1"], fontSize=18, spaceAfter=20)
+        title_style = ParagraphStyle("Title", parent=styles["Heading1"], fontSize=18, spaceAfter=10)
         story.append(Paragraph("All Proposals Report", title_style))
+        
+        if filter_info:
+            filter_style = ParagraphStyle("Filter", parent=styles["Normal"], fontSize=10, textColor=colors.grey, spaceAfter=10)
+            story.append(Paragraph(f"Filter: {filter_info}", filter_style))
+            
         story.append(Paragraph(f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M')}", styles["Normal"]))
         story.append(Spacer(1, 0.2*inch))
         

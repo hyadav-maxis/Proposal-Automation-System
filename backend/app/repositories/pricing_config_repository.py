@@ -120,6 +120,8 @@ class PricingConfigRepository:
 
 We are pleased to inform you that the proposal for your project "{{project_name}}" has been prepared and is ready for your review. 
 
+The total estimated price for this project is {{total_price}}.
+
 Please find the detailed proposal attached with this email. It includes the scope of work, pricing details, and timeline for the project.
 
 If you have any questions, require clarification, or would like to discuss any part of the proposal, please feel free to reply to this email. We will be happy to assist you.

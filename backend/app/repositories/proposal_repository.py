@@ -260,7 +260,7 @@ class ProposalRepository:
         finally:
             cursor.close()
 
-    def list_proposals(self, location: Optional[str] = None) -> List[Dict[str, Any]]:
+    def list_proposals(self, location: Optional[str] = None, search: Optional[str] = None) -> List[Dict[str, Any]]:
         cursor = self._db.cursor(cursor_factory=RealDictCursor)
         try:
             query = """
@@ -270,13 +270,25 @@ class ProposalRepository:
                 FROM proposals p
                 LEFT JOIN proposal_details pd ON p.id = pd.proposal_id
             """
+            where_clauses = []
             params = []
+
             if location and location != "all":
-                query += " WHERE pd.resource_location = %s"
+                where_clauses.append("pd.resource_location = %s")
                 params.append(location)
-            
+
+            if search:
+                search_pattern = f"%{search}%"
+                where_clauses.append(
+                    "(p.proposal_number ILIKE %s OR p.client_name ILIKE %s OR p.project_name ILIKE %s OR p.client_email ILIKE %s)"
+                )
+                params.extend([search_pattern] * 4)
+
+            if where_clauses:
+                query += " WHERE " + " AND ".join(where_clauses)
+
             query += " ORDER BY p.created_at DESC"
-            
+
             cursor.execute(query, params)
             return [dict(row) for row in cursor.fetchall()]
         finally:
