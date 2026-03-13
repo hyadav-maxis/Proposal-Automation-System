@@ -11,8 +11,8 @@ export default function Proposals() {
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
   const [locationFilter, setLocationFilter] = useState('all');
-  const [minDbSize, setMinDbSize] = useState('all');
-  const [maxDbSize, setMaxDbSize] = useState('all');
+  const [minDbSize, setMinDbSize] = useState('');
+  const [maxDbSize, setMaxDbSize] = useState('');
   const [sortKey, setSortKey] = useState('created_at');
   const [sortDir, setSortDir] = useState(-1);
   const [loading, setLoading] = useState(true);
@@ -37,21 +37,15 @@ export default function Proposals() {
     return () => clearTimeout(timer);
   }, [locationFilter, search, minDbSize, maxDbSize]);
 
-  async function loadProposals(loc = 'all', q = '', minSz = 'all', maxSz = 'all') {
+  async function loadProposals(loc = 'all', q = '', minSz = '', maxSz = '') {
     setLoading(true);
     setError(null);
     try {
       let url = '/api/proposals';
       const params = new URLSearchParams();
       if (loc && loc !== 'all') params.append('location', loc);
-      if (minSz && minSz !== 'all') {
-        const val = minSz.endsWith('tb') ? parseFloat(minSz) * 1000 : minSz;
-        params.append('min_db_size', val);
-      }
-      if (maxSz && maxSz !== 'all') {
-        const val = maxSz.endsWith('tb') ? parseFloat(maxSz) * 1000 : maxSz;
-        params.append('max_db_size', val);
-      }
+      if (minSz && minSz !== '') params.append('min_db_size', minSz);
+      if (maxSz && maxSz !== '') params.append('max_db_size', maxSz);
       if (q) params.append('q', q);
       if (params.toString()) url += `?${params.toString()}`;
       
@@ -160,11 +154,9 @@ export default function Proposals() {
           <button 
             className="export-btn-pdf"
             onClick={() => {
-              const minVal = minDbSize === 'all' ? '' : (minDbSize.endsWith('tb') ? parseFloat(minDbSize) * 1000 : minDbSize);
-              const maxVal = maxDbSize === 'all' ? '' : (maxDbSize.endsWith('tb') ? parseFloat(maxDbSize) * 1000 : maxDbSize);
               let url = `/api/export/proposals/all/pdf?location=${locationFilter}&q=${encodeURIComponent(search)}`;
-              if (minVal) url += `&min_db_size=${minVal}`;
-              if (maxVal) url += `&max_db_size=${maxVal}`;
+              if (minDbSize) url += `&min_db_size=${minDbSize}`;
+              if (maxDbSize) url += `&max_db_size=${maxDbSize}`;
               handleDownload(url, 'all_proposals.pdf');
             }} 
           >
@@ -173,11 +165,9 @@ export default function Proposals() {
           <button 
             className="export-btn-excel"
             onClick={() => {
-              const minVal = minDbSize === 'all' ? '' : (minDbSize.endsWith('tb') ? parseFloat(minDbSize) * 1000 : minDbSize);
-              const maxVal = maxDbSize === 'all' ? '' : (maxDbSize.endsWith('tb') ? parseFloat(maxDbSize) * 1000 : maxDbSize);
               let url = `/api/export/proposals/all/excel?location=${locationFilter}&q=${encodeURIComponent(search)}`;
-              if (minVal) url += `&min_db_size=${minVal}`;
-              if (maxVal) url += `&max_db_size=${maxVal}`;
+              if (minDbSize) url += `&min_db_size=${minDbSize}`;
+              if (maxDbSize) url += `&max_db_size=${maxDbSize}`;
               handleDownload(url, 'all_proposals.xlsx');
             }} 
           >
@@ -213,67 +203,51 @@ export default function Proposals() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Database Size:</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <select 
-                  value={minDbSize} 
-                  onChange={e => setMinDbSize(e.target.value)}
-                  style={{ 
-                    background: 'var(--surface2)', 
-                    border: '1px solid var(--border)', 
-                    borderRadius: 30, 
-                    padding: '8px 32px 8px 16px', 
-                    fontSize: '0.875rem', 
-                    color: 'var(--text)', 
-                    outline: 'none', 
-                    cursor: 'pointer',
-                    appearance: 'none',
-                    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 12px center',
-                    backgroundSize: '14px',
-                    minWidth: '105px'
-                  }}
-                >
-                  <option value="all">Min Size</option>
-                  <option value="1">1 GB</option>
-                  <option value="10">10 GB</option>
-                  <option value="50">50 GB</option>
-                  <option value="100">100 GB</option>
-                  <option value="500">500 GB</option>
-                  <option value="1tb">1 TB</option>
-                </select>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ position: 'absolute', left: 10, fontSize: '0.75rem', color: 'var(--text-muted)', pointerEvents: 'none' }}>≥</span>
+                  <input 
+                    type="number" 
+                    placeholder="Min GB"
+                    value={minDbSize} 
+                    onChange={e => setMinDbSize(e.target.value)}
+                    style={{ 
+                      background: 'var(--surface2)', 
+                      border: '1px solid var(--border)', 
+                      borderRadius: 20, 
+                      padding: '6px 10px 6px 27px', 
+                      fontSize: '0.82rem', 
+                      color: 'var(--text)', 
+                      outline: 'none', 
+                      width: '100px',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
                 
-                <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>-</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>to</span>
 
-                <select 
-                  value={maxDbSize} 
-                  onChange={e => setMaxDbSize(e.target.value)}
-                  style={{ 
-                    background: 'var(--surface2)', 
-                    border: '1px solid var(--border)', 
-                    borderRadius: 30, 
-                    padding: '8px 32px 8px 16px', 
-                    fontSize: '0.875rem', 
-                    color: 'var(--text)', 
-                    outline: 'none', 
-                    cursor: 'pointer',
-                    appearance: 'none',
-                    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 12px center',
-                    backgroundSize: '14px',
-                    minWidth: '105px'
-                  }}
-                >
-                  <option value="all">Max Size</option>
-                  <option value="50">50 GB</option>
-                  <option value="100">100 GB</option>
-                  <option value="500">500 GB</option>
-                  <option value="1tb">1 TB</option>
-                  <option value="5tb">5 TB</option>
-                  <option value="10tb">10 TB+</option>
-                </select>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, marginLeft: 2 }}>GB/TB</span>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ position: 'absolute', left: 10, fontSize: '0.75rem', color: 'var(--text-muted)', pointerEvents: 'none' }}>≤</span>
+                  <input 
+                    type="number" 
+                    placeholder="Max GB"
+                    value={maxDbSize} 
+                    onChange={e => setMaxDbSize(e.target.value)}
+                    style={{ 
+                      background: 'var(--surface2)', 
+                      border: '1px solid var(--border)', 
+                      borderRadius: 20, 
+                      padding: '6px 10px 6px 27px', 
+                      fontSize: '0.82rem', 
+                      color: 'var(--text)', 
+                      outline: 'none', 
+                      width: '102px',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, marginLeft: 2 }}>GB</span>
               </div>
             </div>
 
