@@ -260,13 +260,13 @@ class ProposalRepository:
         finally:
             cursor.close()
 
-    def list_proposals(self, location: Optional[str] = None, search: Optional[str] = None) -> List[Dict[str, Any]]:
+    def list_proposals(self, location: Optional[str] = None, search: Optional[str] = None, min_gb: Optional[float] = None, max_gb: Optional[float] = None) -> List[Dict[str, Any]]:
         cursor = self._db.cursor(cursor_factory=RealDictCursor)
         try:
             query = """
                 SELECT p.id, p.proposal_number, p.client_name, p.client_email,
                        p.project_name, p.total_price, p.status, p.created_at, p.updated_at,
-                       pd.resource_location
+                       pd.resource_location, pd.database_size_gb
                 FROM proposals p
                 LEFT JOIN proposal_details pd ON p.id = pd.proposal_id
             """
@@ -276,6 +276,14 @@ class ProposalRepository:
             if location and location != "all":
                 where_clauses.append("pd.resource_location = %s")
                 params.append(location)
+
+            if min_gb is not None:
+                where_clauses.append("pd.database_size_gb >= %s")
+                params.append(min_gb)
+            
+            if max_gb is not None:
+                where_clauses.append("pd.database_size_gb <= %s")
+                params.append(max_gb)
 
             if search:
                 search_pattern = f"%{search}%"
