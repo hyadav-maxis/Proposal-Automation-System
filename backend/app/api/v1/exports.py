@@ -51,13 +51,17 @@ def export_proposal_pdf(proposal_id: int, db=Depends(get_db)):
 
 
 @router.get("/proposals/all/pdf")
-def export_all_proposals_pdf(location: str = None, q: str = None, db=Depends(get_db)):
+def export_all_proposals_pdf(location: str = None, q: str = None, min_db_size: float = None, max_db_size: float = None, db=Depends(get_db)):
     """Download all proposals summary as a PDF file."""
-    proposals = ProposalService(db).list_proposals(location=location, search=q)
+    proposals = ProposalService(db).list_proposals(location=location, search=q, min_gb=min_db_size, max_gb=max_db_size)
     
     filter_parts = []
     if location and location != "all":
         filter_parts.append(f"Location: {location.replace('_', ' ').title()}")
+    if min_db_size:
+        filter_parts.append(f"Min Size: {min_db_size}GB")
+    if max_db_size:
+        filter_parts.append(f"Max Size: {max_db_size}GB")
     if q:
         filter_parts.append(f"Search: '{q}'")
     filter_info = " | ".join(filter_parts) if filter_parts else "All Records"
@@ -79,13 +83,17 @@ def export_all_proposals_pdf(location: str = None, q: str = None, db=Depends(get
 
 
 @router.get("/proposals/all/excel")
-def export_all_proposals_excel(location: str = None, q: str = None, db=Depends(get_db)):
+def export_all_proposals_excel(location: str = None, q: str = None, min_db_size: float = None, max_db_size: float = None, db=Depends(get_db)):
     """Download all proposals summary as an Excel (.xlsx) file."""
-    proposals = ProposalService(db).list_proposals(location=location, search=q)
+    proposals = ProposalService(db).list_proposals(location=location, search=q, min_gb=min_db_size, max_gb=max_db_size)
     
     filter_parts = []
     if location and location != "all":
         filter_parts.append(f"Location: {location.replace('_', ' ').title()}")
+    if min_db_size:
+        filter_parts.append(f"Min Size: {min_db_size}GB")
+    if max_db_size:
+        filter_parts.append(f"Max Size: {max_db_size}GB")
     if q:
         filter_parts.append(f"Search: '{q}'")
     filter_info = " | ".join(filter_parts) if filter_parts else "All Records"

@@ -26,9 +26,9 @@ async def create_proposal(
 
 
 @router.get("")
-def list_proposals(location: str = None, q: str = None, db=Depends(get_db)):
-    """List all proposals, optionally filtered by location and search query."""
-    return ProposalService(db).list_proposals(location=location, search=q)
+def list_proposals(location: str = None, q: str = None, min_db_size: float = None, max_db_size: float = None, db=Depends(get_db)):
+    """List all proposals, optionally filtered by location, search query, and database size range."""
+    return ProposalService(db).list_proposals(location=location, search=q, min_gb=min_db_size, max_gb=max_db_size)
 
 
 @router.get("/{proposal_id}")

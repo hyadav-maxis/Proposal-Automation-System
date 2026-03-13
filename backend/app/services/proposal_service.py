@@ -296,8 +296,8 @@ class ProposalService:
 
         return proposal
 
-    def list_proposals(self, location: Optional[str] = None, search: Optional[str] = None):
-        return self._repo.list_proposals(location=location, search=search)
+    def list_proposals(self, location: Optional[str] = None, search: Optional[str] = None, min_gb: Optional[float] = None, max_gb: Optional[float] = None):
+        return self._repo.list_proposals(location=location, search=search, min_gb=min_gb, max_gb=max_gb)
 
     def delete_proposal(self, proposal_id: int) -> dict:
         """Delete a proposal and all related data."""
